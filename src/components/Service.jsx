@@ -533,9 +533,8 @@ export default function Service() {
 
           <motion.div
             variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-40px' }}
+            initial="visible"
+            animate="visible"
             className="grid md:grid-cols-2 gap-6 mb-24"
           >
             {services.map((service, i) => (
