@@ -1,9 +1,11 @@
 import { useRef, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
-const { CheckCircle, ArrowRight, ChevronDown, Layers, Send } = LucideIcons
+const { CheckCircle, ArrowRight, ChevronDown, Layers, Send, Wallet } = LucideIcons
 import { useSocialLinks, useServices, useServicePage } from '../lib/usePortfolioData'
-import { submitContactMessage } from '../lib/supabase'
+import { submitContactMessage, savePayment } from '../lib/supabase'
+import { openRazorpayCheckout } from '../lib/razorpay'
 import ServiceNavbar from './ServiceNavbar'
 import AuroraBackground from './AuroraBackground'
 import { Footer } from './ui/footer-section'
@@ -85,43 +87,136 @@ function AnimatedCounter({ value, suffix = '' }) {
 }
 
 function ServiceCard({ service, index }) {
+  const hasPrice = service.price && service.price !== '0'
+  const navigate = useNavigate()
   return (
-    <TiltCard className="glass-panel rounded-2xl p-6 md:p-8 group relative overflow-hidden">
-      <span className="absolute top-4 right-4 text-[40px] leading-none font-display font-bold text-black/5 dark:text-white/5 select-none pointer-events-none">
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <div className="relative">
-        <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center mb-5 ring-1 ring-black/5 dark:ring-white/10">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-            <ResolvedIcon name={service.icon_name} className="w-4 h-4 text-cyan-500 group-hover:text-cyan-400 transition-colors duration-300" />
-          </div>
-        </div>
-        <h2 className="text-lg font-semibold text-black/80 dark:text-white/80 mb-1">
-          {service.title}
-        </h2>
-        <p className="text-xs uppercase tracking-widest text-cyan-500 mb-3">
-          {service.tagline}
-        </p>
-        <div
-          className="text-sm text-black/50 dark:text-white/50 leading-relaxed mb-5"
-          dangerouslySetInnerHTML={{ __html: service.description }}
-        />
-        <ul className="space-y-2 mb-6">
-          {service.features.map((feat) => (
-            <li key={feat} className="flex items-start gap-2.5 text-xs text-black/50 dark:text-white/50">
-              <CheckCircle className="w-3.5 h-3.5 text-cyan-500 mt-0.5 shrink-0" />
-              {feat}
-            </li>
-          ))}
-        </ul>
-        <button className="group/btn inline-flex items-center gap-3 text-xs uppercase tracking-widest text-cyan-500 hover:text-cyan-400 transition-colors">
-          Let's talk
-          <span className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-            <ArrowRight className="w-3 h-3" />
-          </span>
-        </button>
-      </div>
-    </TiltCard>
+    <motion.div
+      variants={childVariants}
+      className="group relative"
+    >
+      <TiltCard className="glass-panel rounded-2xl p-6 md:p-8 group relative overflow-hidden transition-shadow duration-500 hover:shadow-lg hover:shadow-cyan-500/5">
+        <motion.span
+          initial={{ opacity: 0, scale: 2 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          className="absolute top-4 right-4 text-[40px] leading-none font-display font-bold text-black/5 dark:text-white/5 select-none pointer-events-none"
+        >
+          {String(index + 1).padStart(2, '0')}
+        </motion.span>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+          className="relative flex flex-col h-full"
+        >
+          <motion.div
+            whileHover={{ scale: 1.05, rotate: [0, -4, 4, 0] }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center mb-5 ring-1 ring-black/5 dark:ring-white/10 group-hover:ring-cyan-500/30 transition-all duration-500"
+          >
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+              <ResolvedIcon name={service.icon_name} className="w-4 h-4 text-cyan-500 transition-all duration-300 group-hover:text-cyan-400 group-hover:scale-110" />
+            </div>
+          </motion.div>
+
+          <h2 className="text-lg font-semibold text-black/80 dark:text-white/80 mb-1">
+            {service.title}
+          </h2>
+          <p className="text-xs uppercase tracking-widest text-cyan-500 mb-3">
+            {service.tagline}
+          </p>
+          <div
+            className="text-sm text-black/50 dark:text-white/50 leading-relaxed mb-5 flex-1"
+            dangerouslySetInnerHTML={{ __html: service.description }}
+          />
+
+          <ul className="space-y-2 mb-6">
+            {service.features.map((feat) => (
+              <motion.li
+                key={feat}
+                initial={{ opacity: 0, x: -8 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 + index * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-start gap-2.5 text-xs text-black/50 dark:text-white/50"
+              >
+                <motion.span
+                  whileHover={{ scale: 1.3, rotate: [0, -10, 10, 0] }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                >
+                  <CheckCircle className="w-3.5 h-3.5 text-cyan-500 mt-0.5 shrink-0" />
+                </motion.span>
+                {feat}
+              </motion.li>
+            ))}
+          </ul>
+
+          {service.pricing && service.pricing.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+              className="flex items-center gap-2 mb-4 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/5 to-purple-500/5 border border-cyan-500/10"
+            >
+              <span className="text-[9px] uppercase tracking-widest text-cyan-500/70 font-medium whitespace-nowrap">
+                {service.pricing.length} options
+              </span>
+              <span className="w-px h-3 bg-cyan-500/20" />
+              <span className="text-[9px] uppercase tracking-widest text-black/40 dark:text-white/40">
+                {service.delivery}
+              </span>
+            </motion.div>
+          )}
+
+          {hasPrice ? (
+            <motion.button
+              onClick={() => navigate(`/services/${service.service_id}`)}
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="w-full group/btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-xs uppercase tracking-widest font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25"
+            >
+              <Wallet className="w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:scale-110" />
+              View Details
+              <motion.span
+                initial={{ x: 0 }}
+                whileHover={{ x: 3 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                <ArrowRight className="w-3 h-3" />
+              </motion.span>
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={() => navigate(`/services/${service.service_id}`)}
+              whileHover={{ scale: 1.03, x: 4 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="group/btn inline-flex items-center gap-3 text-xs uppercase tracking-widest text-cyan-500 hover:text-cyan-400 transition-colors"
+            >
+              <motion.span
+                initial={{ x: 0 }}
+                whileHover={{ x: 4 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                View Details
+              </motion.span>
+              <motion.span
+                animate={{ x: [0, 3, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center group-hover/btn:bg-cyan-500/20 transition-colors duration-300"
+              >
+                <ArrowRight className="w-3 h-3" />
+              </motion.span>
+            </motion.button>
+          )}
+        </motion.div>
+      </TiltCard>
+    </motion.div>
   )
 }
 
@@ -153,7 +248,7 @@ function ProcessStep({ step, index }) {
   )
 }
 
-function PackageCard({ pkg, index }) {
+function PackageCard({ pkg, index, onPayment, paying }) {
   return (
     <motion.div
       custom={index}
@@ -182,13 +277,25 @@ function PackageCard({ pkg, index }) {
           </li>
         ))}
       </ul>
-      <button className={`w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-xs uppercase tracking-widest font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] active:scale-[0.97] ${
-        pkg.popular
-          ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-          : 'bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/70 hover:bg-black/10 dark:hover:bg-white/10'
-      }`}>
-        Get Started
-        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+      <button
+        onClick={() => onPayment?.(pkg)}
+        disabled={paying}
+        className={`w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-xs uppercase tracking-widest font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100 ${
+          pkg.popular
+            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
+            : 'bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/70 hover:bg-black/10 dark:hover:bg-white/10'
+        }`}>
+        {paying ? (
+          <span className="flex items-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            Processing...
+          </span>
+        ) : (
+          <>
+            Get Started
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </>
+        )}
       </button>
     </motion.div>
   )
@@ -291,9 +398,79 @@ export default function Service() {
   const services = useServices()
   const page = useServicePage()
   const [openFAQ, setOpenFAQ] = useState(null)
+  const [payingPackage, setPayingPackage] = useState(null)
+  const [payingService, setPayingService] = useState(null)
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' })
   const [contactStatus, setContactStatus] = useState('idle')
   const [contactError, setContactError] = useState('')
+
+  function parsePrice(price) {
+    const cleaned = price.replace(/[^0-9.kK]/g, '')
+    const isK = /k/i.test(cleaned)
+    const num = parseFloat(cleaned)
+    if (isNaN(num)) return 0
+    return isK ? Math.round(num * 1000) : Math.round(num)
+  }
+
+  async function handlePackagePayment(pkg) {
+    setPayingPackage(pkg.name)
+    const priceNum = parsePrice(pkg.price)
+    if (!priceNum) { setPayingPackage(null); return }
+    await openRazorpayCheckout({
+      amount: priceNum,
+      currency: 'INR',
+      description: `${pkg.name} Package — ${pkg.currency}${pkg.price}`,
+      prefill: { name: '', email: '' },
+      async onSuccess(response) {
+        try {
+          await savePayment({
+            service_id: 'package',
+            service_title: `${pkg.name} Package`,
+            pricing_label: pkg.name,
+            amount: priceNum,
+            currency: 'INR',
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+          })
+        } catch (e) {
+          console.warn('Payment saved but failed to record:', e)
+        }
+        setPayingPackage(null)
+      },
+      onError() { setPayingPackage(null) },
+    })
+    setPayingPackage(null)
+  }
+
+  async function handleServicePayment(service) {
+    setPayingService(service.service_id)
+    const priceNum = parsePrice(service.price)
+    if (!priceNum) { setPayingService(null); return }
+    await openRazorpayCheckout({
+      amount: priceNum,
+      currency: 'INR',
+      description: `${service.title} — ${service.currency || '₹'}${service.price}`,
+      prefill: { name: '', email: '' },
+      async onSuccess(response) {
+        try {
+          await savePayment({
+            service_id: service.service_id || 'service',
+            service_title: service.title,
+            pricing_label: 'Direct Payment',
+            amount: priceNum,
+            currency: 'INR',
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+          })
+        } catch (e) {
+          console.warn('Payment saved but failed to record:', e)
+        }
+        setPayingService(null)
+      },
+      onError() { setPayingService(null) },
+    })
+    setPayingService(null)
+  }
 
   async function handleContactSubmit(e) {
     e.preventDefault()
@@ -354,11 +531,17 @@ export default function Service() {
             </motion.p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-24">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            className="grid md:grid-cols-2 gap-6 mb-24"
+          >
             {services.map((service, i) => (
               <ServiceCard key={service.service_id || i} service={service} index={i} />
             ))}
-          </div>
+          </motion.div>
         </div>
 
         {stats.length > 0 && (
@@ -386,7 +569,7 @@ export default function Service() {
             <div className="md:col-span-2 md:sticky md:top-32 md:self-start">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                whileInView="visible"
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
               >
                 <span className="eyebrow">Process</span>
@@ -412,7 +595,7 @@ export default function Service() {
           <div id="pricing" className="mb-24">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView="visible"
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-center mb-12"
             >
@@ -434,7 +617,7 @@ export default function Service() {
               className="grid md:grid-cols-3 gap-6"
             >
               {packages.map((pkg, i) => (
-                <PackageCard key={pkg.name || i} pkg={pkg} index={i} />
+                <PackageCard key={pkg.name || i} pkg={pkg} index={i} onPayment={handlePackagePayment} paying={payingPackage === pkg.name} />
               ))}
             </motion.div>
           </div>
@@ -444,7 +627,7 @@ export default function Service() {
           <div id="testimonials" className="mb-24">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView="visible"
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-center mb-12"
             >
@@ -460,7 +643,7 @@ export default function Service() {
                 <motion.div
                   key={t.author || i}
                   initial={{ opacity: 0, y: 20 }}
-                  whileInView="visible"
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   className="glass-panel rounded-2xl p-6"
@@ -520,7 +703,7 @@ export default function Service() {
           <div id="faq" className="mb-24 max-w-2xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView="visible"
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-center mb-12"
             >

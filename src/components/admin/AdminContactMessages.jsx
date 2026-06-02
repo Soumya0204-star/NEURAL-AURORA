@@ -72,27 +72,46 @@ export default function AdminContactMessages() {
               background: selectedIds.has(msg.id) ? 'rgba(99,102,241,0.06)' : (msg.read ? 'var(--card-bg)' : 'rgba(59,130,246,0.03)'),
             }}
           >
-            <div className="flex items-start gap-3">
-              <input type="checkbox" checked={selectedIds.has(msg.id)} onChange={() => toggleSelect(msg.id)} className="rounded shrink-0 mt-1" />
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                    {msg.name}
-                  </h3>
-                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{msg.email}</span>
-                  {!msg.read && (
-                    <span className="rounded-full px-2 py-0.5 text-[10px] font-medium text-blue-400" style={{ background: 'rgba(59,130,246,0.1)' }}>
-                      New
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-secondary)' }}>
-                  {msg.message}
-                </p>
-                <p className="mt-2 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-                  {new Date(msg.created_at).toLocaleString()}
-                </p>
-              </div>
+                <div className="flex items-start gap-3">
+                  <input type="checkbox" checked={selectedIds.has(msg.id)} onChange={() => toggleSelect(msg.id)} className="rounded shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {msg.name}
+                      </h3>
+                      <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{msg.email}</span>
+                      {!msg.read && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-medium text-blue-400" style={{ background: 'rgba(59,130,246,0.1)' }}>
+                          New
+                        </span>
+                      )}
+                      {msg.paid && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-medium text-emerald-500" style={{ background: 'rgba(16,185,129,0.1)' }}>
+                          Paid
+                        </span>
+                      )}
+                    </div>
+                    {(msg.service || msg.pricing_label) && (
+                      <div className="flex flex-wrap gap-2 mt-1.5">
+                        {msg.service && (
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-medium" style={{ background: 'var(--hover-bg)', color: 'var(--text-tertiary)' }}>
+                            {msg.service}
+                          </span>
+                        )}
+                        {msg.pricing_label && (
+                          <span className="rounded px-1.5 py-0.5 text-[10px]" style={{ background: 'rgba(6,182,212,0.08)', color: 'rgba(6,182,212,0.8)' }}>
+                            {msg.pricing_label}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-secondary)' }}>
+                      {msg.message}
+                    </p>
+                    <p className="mt-2 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                      {new Date(msg.created_at).toLocaleString()}
+                    </p>
+                  </div>
               <div className="flex gap-2 ml-4">
                 {!msg.read && (
                   <button

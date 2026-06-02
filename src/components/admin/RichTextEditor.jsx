@@ -127,7 +127,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             />
           ) : (
             <button
-              key={item.cmd}
+              key={item.cmd + (item.value || '')}
               type="button"
               onMouseDown={(e) => { e.preventDefault(); handleToolbarAction(item) }}
               className="flex h-8 w-8 items-center justify-center rounded text-xs transition-colors"

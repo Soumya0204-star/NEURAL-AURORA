@@ -449,10 +449,10 @@ export async function uploadImage(file, bucket = 'portfolio-images') {
   return publicUrl
 }
 
-export async function submitContactMessage({ name, email, message }) {
+export async function submitContactMessage({ name, email, message, service, pricing_label, paid }) {
   const { error } = await supabase
     .from('contact_messages')
-    .insert([{ name, email, message }])
+    .insert([{ name, email, message, service, pricing_label, paid: paid || false }])
   if (error) throw error
 }
 
@@ -586,4 +586,30 @@ export async function updateServicePage(data) {
     .update(data)
     .eq('id', 1)
   if (error) throw error
+}
+
+export async function savePayment(data) {
+  const { error } = await supabase
+    .from('payments')
+    .insert([{
+      service_id: data.service_id,
+      service_title: data.service_title,
+      pricing_label: data.pricing_label,
+      amount: data.amount,
+      currency: data.currency || 'INR',
+      razorpay_payment_id: data.razorpay_payment_id || null,
+      razorpay_order_id: data.razorpay_order_id || null,
+      customer_email: data.customer_email || null,
+      customer_name: data.customer_name || null,
+    }])
+  if (error) throw error
+}
+
+export async function getPayments() {
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
 }

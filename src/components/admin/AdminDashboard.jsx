@@ -12,11 +12,13 @@ import AdminSocialLinks from './AdminSocialLinks'
 import AdminReviews from './AdminReviews'
 import AdminUsers from './AdminUsers'
 import AdminContactMessages from './AdminContactMessages'
+import AdminPayments from './AdminPayments'
 import AdminAds from './AdminAds'
 import AdminServices from './AdminServices'
 import AdminCrmConfig from './AdminCrmConfig'
 import AdminAiAutomation from './AdminAiAutomation'
 import AdminYouTubeConfig from './AdminYouTubeConfig'
+import AdminPaymentSettings from './AdminPaymentSettings'
 export default function AdminDashboard() {
   return (
     <AdminLayout>
@@ -34,10 +36,12 @@ export default function AdminDashboard() {
         <Route path="reviews" element={<AdminReviews />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="messages" element={<AdminContactMessages />} />
+        <Route path="payments" element={<AdminPayments />} />
         <Route path="ads" element={<AdminAds />} />
         <Route path="crm-config" element={<AdminCrmConfig />} />
         <Route path="youtube-config" element={<AdminYouTubeConfig />} />
         <Route path="ai-automation" element={<AdminAiAutomation />} />
+        <Route path="payment-settings" element={<AdminPaymentSettings />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>
