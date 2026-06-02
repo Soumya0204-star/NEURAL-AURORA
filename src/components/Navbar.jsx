@@ -5,6 +5,7 @@ import { Lock, Shield, ExternalLink } from 'lucide-react'
 import { ThemeToggle } from './ui/curtain-theme-toggle'
 import { BrandLogo } from './ui/BrandLogo'
 import { getCrmUrl } from '../lib/crm-config'
+import { getDocsUrl } from '../lib/docs-config'
 
 const navLinks = [
   { label: 'About', href: '#about' },
@@ -26,11 +27,90 @@ const staggerItem = {
   }),
 }
 
+function LoginMenuMobile({ crmUrl, docsUrl, staggerItem, navLinksLength, onNavigate }) {
+  const [expanded, setExpanded] = useState(false)
+  const mNavigate = useNavigate()
+
+  return (
+    <motion.div
+      custom={navLinksLength}
+      variants={staggerItem}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-col items-center"
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-3 text-xl tracking-tight transition-colors"
+        style={{ color: 'var(--accent)' }}
+      >
+        <Lock className="w-4 h-4" strokeWidth={1.5} />
+        <span>Login &amp; Setup</span>
+        <motion.svg
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          className="w-4 h-4"
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </motion.svg>
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden flex flex-col items-center gap-5 pt-4"
+          >
+            <button
+              onClick={() => { onNavigate(); mNavigate('/login') }}
+              className="flex items-center gap-3 text-base tracking-tight transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              <Shield className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--accent)' }} />
+              Admin Dashboard
+            </button>
+            {crmUrl && (
+              <a
+                href={crmUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onNavigate}
+                className="flex items-center gap-3 text-base tracking-tight transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <ExternalLink className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--accent)' }} />
+                CRM Dashboard
+              </a>
+            )}
+            {docsUrl && (
+              <a
+                href={docsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onNavigate}
+                className="flex items-center gap-3 text-base tracking-tight transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <ExternalLink className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--accent)' }} />
+                Get Started
+              </a>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [crmUrl, setCrmUrl] = useState('')
+  const [docsUrl, setDocsUrl] = useState('')
   const loginRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -38,6 +118,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setCrmUrl(getCrmUrl())
+    setDocsUrl(getDocsUrl())
   }, [])
 
   useEffect(() => {
@@ -155,6 +236,23 @@ export default function Navbar() {
                             </a>
                           </>
                         )}
+                        {docsUrl && (
+                          <>
+                            <div className="mx-3 my-1 h-px" style={{ background: 'var(--border-color)' }} />
+                            <a
+                              href={docsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[11px] font-medium tracking-wider uppercase active:scale-[0.98] transition-all duration-300"
+                              style={{ color: 'var(--text-secondary)' }}
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--hover-bg)'}
+                              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} style={{ color: 'var(--accent)' }} />
+                              <span>Get Started</span>
+                            </a>
+                          </>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -213,35 +311,13 @@ export default function Navbar() {
                   {link.label}
                 </motion.button>
               ))}
-              <motion.button
-                custom={navLinks.length}
-                variants={staggerItem}
-                initial="hidden"
-                animate="visible"
-                onClick={() => { setOpen(false); navigate('/login') }}
-                className="flex items-center gap-3 text-xl tracking-tight transition-colors"
-                style={{ color: 'var(--accent)' }}
-              >
-                <Shield className="w-4 h-4" strokeWidth={1.5} />
-                Admin Dashboard
-              </motion.button>
-              {crmUrl && (
-                <motion.a
-                  custom={navLinks.length + 1}
-                  variants={staggerItem}
-                  initial="hidden"
-                  animate="visible"
-                  href={crmUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 text-xl tracking-tight transition-colors"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
-                  CRM Dashboard
-                </motion.a>
-              )}
+              <LoginMenuMobile
+                crmUrl={crmUrl}
+                docsUrl={docsUrl}
+                staggerItem={staggerItem}
+                navLinksLength={navLinks.length}
+                onNavigate={() => setOpen(false)}
+              />
             </div>
           </motion.div>
         )}
