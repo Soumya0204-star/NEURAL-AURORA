@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['images/pwa-icon-192x192.png', 'images/pwa-icon-512x512.png'],
+        includeAssets: ['images/pwa-icon-192x192.png', 'images/pwa-icon-512x512.png', 'images/pwa-icon.svg'],
         manifest: {
           name: 'NEURAL AURORA - Techhackontime999',
           short_name: 'NEURAL AURORA',
@@ -20,9 +20,35 @@ export default defineConfig(({ mode }) => {
           theme_color: '#080C14',
           background_color: '#080C14',
           display: 'standalone',
+          display_override: ['window-controls-overlay', 'standalone'],
           scope: '/',
           start_url: '/',
           orientation: 'portrait-primary',
+          lang: 'en',
+          categories: ['portfolio', 'developer', 'technology'],
+          shortcuts: [
+            {
+              name: 'Projects',
+              short_name: 'Projects',
+              description: 'View projects',
+              url: '/#projects',
+            },
+            {
+              name: 'Contact',
+              short_name: 'Contact',
+              description: 'Get in touch',
+              url: '/#contact',
+            },
+          ],
+          screenshots: [
+            {
+              src: '/images/pwa-icon-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              form_factor: 'narrow',
+              label: 'NEURAL AURORA',
+            },
+          ],
           icons: [
             {
               src: '/images/pwa-icon-192x192.png',
@@ -44,7 +70,7 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff,woff2}'],
-          maximumFileSizeToCacheInBytes: 3000000,
+          maximumFileSizeToCacheInBytes: 4000000,
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
@@ -61,6 +87,25 @@ export default defineConfig(({ mode }) => {
               options: {
                 cacheName: 'fontshare',
                 expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/prod\.spline\.design\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'spline-assets',
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                networkTimeoutSeconds: 5,
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/crm-neural-aurora\.vercel\.app\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'crm-assets',
+                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 7 },
                 cacheableResponse: { statuses: [0, 200] },
               },
             },
