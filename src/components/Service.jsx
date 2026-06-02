@@ -393,6 +393,49 @@ function LiveStatusCard({ items }) {
   )
 }
 
+function FutureReleaseCard({ release, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative"
+    >
+      <div className="glass-panel rounded-2xl p-6 md:p-8 h-full relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+          style={{
+            background: `linear-gradient(135deg, rgba(0,240,255,0.03), rgba(184,41,221,0.03))`,
+          }}
+        />
+        <div className="relative flex flex-col h-full">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                <ResolvedIcon name={release.icon_name} className="w-4 h-4 text-cyan-500" />
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest font-medium border bg-amber-500/10 border-amber-500/20 text-amber-400 shrink-0 ml-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              Coming Soon
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold text-black/80 dark:text-white/80 mb-1">
+            {release.title}
+          </h3>
+          <p className="text-xs uppercase tracking-widest text-cyan-500 mb-3">
+            {release.tagline}
+          </p>
+          <p className="text-sm text-black/50 dark:text-white/50 leading-relaxed flex-1">
+            {release.description}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 export default function Service() {
   const socialLinks = useSocialLinks()
   const services = useServices()
@@ -506,6 +549,7 @@ export default function Service() {
   const techStack = page?.tech_stack || []
   const liveFeed = page?.live_feed || []
   const faqs = page?.faqs || []
+  const futureReleases = page?.future_releases || []
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -585,6 +629,31 @@ export default function Service() {
             <div className="md:col-span-3">
               {processSteps.map((step, i) => (
                 <ProcessStep key={step.title || i} step={step} index={i} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {futureReleases.length > 0 && (
+          <div id="roadmap" className="mb-24">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <span className="eyebrow">Roadmap</span>
+              <h2 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-black/80 dark:text-white/90 mt-4">
+                What&apos;s Coming{' '}
+                <span className="text-gradient">Next</span>
+              </h2>
+              <p className="text-sm text-black/50 dark:text-white/50 mt-3 max-w-lg mx-auto">
+                The future of Neural Aurora — from advanced tools to enterprise-grade infrastructure.
+              </p>
+            </motion.div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {futureReleases.map((release, i) => (
+                <FutureReleaseCard key={release.id || i} release={release} index={i} />
               ))}
             </div>
           </div>

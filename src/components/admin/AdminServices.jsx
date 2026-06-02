@@ -326,6 +326,18 @@ export default function AdminServices() {
       ],
       itemLabel: 'FAQ',
     },
+    {
+      key: 'future_releases', label: 'Future Releases',
+      fields: [
+        { key: 'id', label: 'ID' },
+        { key: 'icon_name', label: 'Icon', type: 'icon', options: ICON_OPTIONS },
+        { key: 'title', label: 'Title' },
+        { key: 'tagline', label: 'Tagline' },
+        { key: 'description', label: 'Description', type: 'textarea' },
+        { key: 'color', label: 'Gradient (e.g. from-cyan-500 to-purple-500)' },
+      ],
+      itemLabel: 'Release',
+    },
   ]
 
   if (!page) {
