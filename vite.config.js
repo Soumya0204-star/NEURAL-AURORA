@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['images/pwa-icon-192x192.png', 'images/pwa-icon-512x512.png'],
         manifest: {
-          name: 'NEURAL AURORA | Techhackontime999',
+          name: 'NEURAL AURORA - Techhackontime999',
           short_name: 'NEURAL AURORA',
           description: 'Full-Stack Developer & UI/UX Architect — crafting neural-inspired digital experiences.',
           theme_color: '#080C14',

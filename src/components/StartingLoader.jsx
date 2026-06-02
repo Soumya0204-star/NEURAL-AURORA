@@ -1124,7 +1124,7 @@ function CmdExplorer({ onBack }) {
           >
             <div className="text-white/80 text-[11px]">
               <span className="text-white/40">Resume: </span>
-              <a href={data.personalInfo.resume} target="_blank" rel="noopener noreferrer"
+              <a href={data.personalInfo.resume} target="_self" rel="noopener noreferrer"
                 className="text-blue-400 underline decoration-blue-400/30 hover:text-blue-300"
               >{data.personalInfo.resume}</a>
             </div>
@@ -2866,7 +2866,7 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
               {docsUrl && (
                 <motion.a
                   href={docsUrl}
-                  target="_blank"
+                  target="_self"
                   rel="noopener noreferrer"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}

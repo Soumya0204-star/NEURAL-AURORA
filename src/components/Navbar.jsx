@@ -75,7 +75,7 @@ function LoginMenuMobile({ crmUrl, docsUrl, staggerItem, navLinksLength, onNavig
             {crmUrl && (
               <a
                 href={crmUrl}
-                target="_blank"
+                target="_self"
                 rel="noopener noreferrer"
                 onClick={onNavigate}
                 className="flex items-center gap-3 text-base tracking-tight transition-colors"
@@ -88,7 +88,7 @@ function LoginMenuMobile({ crmUrl, docsUrl, staggerItem, navLinksLength, onNavig
             {docsUrl && (
               <a
                 href={docsUrl}
-                target="_blank"
+                target="_self"
                 rel="noopener noreferrer"
                 onClick={onNavigate}
                 className="flex items-center gap-3 text-base tracking-tight transition-colors"
@@ -224,7 +224,7 @@ export default function Navbar() {
                             <div className="mx-3 my-1 h-px" style={{ background: 'var(--border-color)' }} />
                             <a
                               href={crmUrl}
-                              target="_blank"
+                              target="_self"
                               rel="noopener noreferrer"
                               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[11px] font-medium tracking-wider uppercase active:scale-[0.98] transition-all duration-300"
                               style={{ color: 'var(--text-secondary)' }}
@@ -241,7 +241,7 @@ export default function Navbar() {
                             <div className="mx-3 my-1 h-px" style={{ background: 'var(--border-color)' }} />
                             <a
                               href={docsUrl}
-                              target="_blank"
+                              target="_self"
                               rel="noopener noreferrer"
                               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[11px] font-medium tracking-wider uppercase active:scale-[0.98] transition-all duration-300"
                               style={{ color: 'var(--text-secondary)' }}
