@@ -16,6 +16,7 @@ import AdminPayments from './AdminPayments'
 import AdminAds from './AdminAds'
 import AdminServices from './AdminServices'
 import AdminCrmConfig from './AdminCrmConfig'
+import AdminDocsConfig from './AdminDocsConfig'
 import AdminAiAutomation from './AdminAiAutomation'
 import AdminYouTubeConfig from './AdminYouTubeConfig'
 import AdminPaymentSettings from './AdminPaymentSettings'
@@ -39,6 +40,7 @@ export default function AdminDashboard() {
         <Route path="payments" element={<AdminPayments />} />
         <Route path="ads" element={<AdminAds />} />
         <Route path="crm-config" element={<AdminCrmConfig />} />
+        <Route path="docs-config" element={<AdminDocsConfig />} />
         <Route path="youtube-config" element={<AdminYouTubeConfig />} />
         <Route path="ai-automation" element={<AdminAiAutomation />} />
         <Route path="payment-settings" element={<AdminPaymentSettings />} />

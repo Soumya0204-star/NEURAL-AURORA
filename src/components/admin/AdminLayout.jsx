@@ -21,6 +21,7 @@ const navItems = [
   { path: '/admin/users', label: 'Users', icon: '◎' },
   { path: '/admin/ai-automation', label: 'AI Automation', icon: '✦' },
   { path: '/admin/crm-config', label: 'CRM Config', icon: '⚙' },
+  { path: '/admin/docs-config', label: 'Docs Config', icon: '⊡' },
   { path: '/admin/youtube-config', label: 'YouTube Config', icon: '⊡' },
   { path: '/admin/payment-settings', label: 'Payment Settings', icon: '₹' },
 ]
