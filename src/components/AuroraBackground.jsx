@@ -1,7 +1,11 @@
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo, useEffect, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float, MeshDistortMaterial } from '@react-three/drei'
 import * as THREE from 'three'
+import ThreeErrorBoundary from '../lib/ThreeErrorBoundary'
+
+const noWebGl = import.meta.env.DEV || sessionStorage.getItem('na_no_canvas') === '1'
+if (noWebGl) sessionStorage.setItem('na_no_canvas', '1')
 
 function NeuralParticles({ count = 600 }) {
   const meshRef = useRef()
@@ -16,10 +20,11 @@ function NeuralParticles({ count = 600 }) {
   }, [count])
 
   useFrame((state) => {
-    if (meshRef.current) {
+    if (!meshRef.current) return
+    try {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.02
       meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.01) * 0.1
-    }
+    } catch (_) {}
   })
 
   return (
@@ -49,15 +54,17 @@ function AuroraWaves() {
   const meshRef2 = useRef()
 
   useFrame((state) => {
-    const t = state.clock.elapsedTime
-    if (meshRef.current) {
-      meshRef.current.position.y = Math.sin(t * 0.3) * 1.5
-      meshRef.current.rotation.z = Math.sin(t * 0.15) * 0.1
-    }
-    if (meshRef2.current) {
-      meshRef2.current.position.y = Math.sin(t * 0.25 + 1) * 1.8
-      meshRef2.current.rotation.z = Math.sin(t * 0.12 + 0.5) * 0.12
-    }
+    try {
+      const t = state.clock.elapsedTime
+      if (meshRef.current) {
+        meshRef.current.position.y = Math.sin(t * 0.3) * 1.5
+        meshRef.current.rotation.z = Math.sin(t * 0.15) * 0.1
+      }
+      if (meshRef2.current) {
+        meshRef2.current.position.y = Math.sin(t * 0.25 + 1) * 1.8
+        meshRef2.current.rotation.z = Math.sin(t * 0.12 + 0.5) * 0.12
+      }
+    } catch (_) {}
   })
 
   return (
@@ -164,13 +171,14 @@ function SynapticFire({ mouse }) {
   }, [])
 
   useFrame((state) => {
-    if (ref.current) {
-      const tx = (mouse.current?.x || 0) * 2
-      const ty = -(mouse.current?.y || 0) * 2
+    if (!ref.current) return
+    try {
+      const tx = (mouse?.current?.x || 0) * 2
+      const ty = -(mouse?.current?.y || 0) * 2
       ref.current.position.x += (tx - ref.current.position.x) * 0.02
       ref.current.position.y += (ty - ref.current.position.y) * 0.02
       ref.current.rotation.y = state.clock.elapsedTime * 0.1
-    }
+    } catch (_) {}
   })
 
   return (
@@ -195,8 +203,8 @@ function SynapticFire({ mouse }) {
   )
 }
 
-function ThemeBackground() {
-  const { scene } = useThree()
+function ThemeBackground({ onContextLost }) {
+  const { scene, gl } = useThree()
 
   useEffect(() => {
     const update = () => {
@@ -210,14 +218,28 @@ function ThemeBackground() {
     return () => observer.disconnect()
   }, [scene])
 
+  useEffect(() => {
+    const canvas = gl.domElement
+    const onLost = () => { onContextLost?.() }
+    canvas.addEventListener('webglcontextlost', onLost)
+    return () => canvas.removeEventListener('webglcontextlost', onLost)
+  }, [gl, onContextLost])
+
   return null
 }
 
-export default function AuroraBackground({ mouse }) {
+function ThreeScene({ mouse }) {
+  const [crashed, setCrashed] = useState(false)
+
+  if (crashed) return null
+
   return (
-    <div className="fixed inset-0 z-0 noise-overlay">
-      <Canvas camera={{ position: [0, 0, 12], fov: 60 }}>
-        <ThemeBackground />
+    <ThreeErrorBoundary fallback={null}>
+      <Canvas
+        camera={{ position: [0, 0, 12], fov: 60 }}
+        onError={() => setCrashed(true)}
+      >
+        <ThemeBackground onContextLost={() => { sessionStorage.setItem('na_no_canvas', '1'); setCrashed(true) }} />
         <color attach="background" args={['#050508']} />
         <NeuralParticles />
         <AuroraWaves />
@@ -226,6 +248,14 @@ export default function AuroraBackground({ mouse }) {
         <ambientLight intensity={0.3} />
         <pointLight position={[10, 10, 10]} intensity={0.5} />
       </Canvas>
+    </ThreeErrorBoundary>
+  )
+}
+
+export default function AuroraBackground({ mouse }) {
+  return (
+    <div className="fixed inset-0 z-0 noise-overlay">
+      {noWebGl ? null : <ThreeScene mouse={mouse} />}
     </div>
   )
 }

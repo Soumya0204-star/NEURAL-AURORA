@@ -1,0 +1,3 @@
+ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS service TEXT;
+ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS pricing_label TEXT;
+ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS paid BOOLEAN DEFAULT FALSE;

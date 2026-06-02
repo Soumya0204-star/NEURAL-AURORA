@@ -139,7 +139,8 @@ export default function AdminServices() {
   const [showNew, setShowNew] = useState(false)
   const [newForm, setNewForm] = useState({
     service_id: '', icon_name: 'Globe', title: '', tagline: '',
-    description: '', features: [],
+    description: '', features: [], pricing: [],
+    price: '', currency: '₹', period: '/project', delivery: '',
   })
   const [saving, setSaving] = useState(false)
   const [pageDirty, setPageDirty] = useState(false)
@@ -180,7 +181,7 @@ export default function AdminServices() {
     }
     await createService(payload)
     setShowNew(false)
-    setNewForm({ service_id: '', icon_name: 'Globe', title: '', tagline: '', description: '', features: [] })
+    setNewForm({ service_id: '', icon_name: 'Globe', title: '', tagline: '', description: '', features: [], pricing: [], price: '', currency: '₹', period: '/project', delivery: '' })
     load()
   }
 
@@ -246,6 +247,17 @@ export default function AdminServices() {
     { key: 'tagline', label: 'Tagline' },
     { key: 'description', label: 'Description', type: 'richText' },
     { key: 'features', label: 'Features (one per line)', type: 'textarea' },
+    { key: 'price', label: 'Price (e.g. 2.5k)' },
+    { key: 'currency', label: 'Currency (e.g. ₹)' },
+    { key: 'period', label: 'Period (e.g. /project)' },
+    { key: 'delivery', label: 'Delivery (e.g. 2-3 weeks)' },
+  ]
+
+  const pricingFields = [
+    { key: 'label', label: 'Label' },
+    { key: 'price', label: 'Price (e.g. 1.5k)' },
+    { key: 'delivery', label: 'Delivery (e.g. 1 week)' },
+    { key: 'features', label: 'Features (comma-sep)', default: '' },
   ]
 
   const sections = [
@@ -397,6 +409,19 @@ export default function AdminServices() {
                   </select>
                 </div>
               </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs" style={{ color: 'var(--text-tertiary)' }}>Pricing Options (JSON array)</label>
+                <textarea
+                  value={newForm.pricing ? JSON.stringify(newForm.pricing, null, 2) : ''}
+                  onChange={(e) => {
+                    try { setNewForm({ ...newForm, pricing: JSON.parse(e.target.value) }) } catch {}
+                  }}
+                  rows={5}
+                  className="w-full rounded border px-3 py-2 text-xs font-mono outline-none"
+                  style={inputStyle}
+                  placeholder='[{"label": "Landing Page", "price": "1.5k", "delivery": "1 week", "features": ["Responsive", "SEO"]}]'
+                />
+              </div>
             </div>
             <button
               onClick={handleCreate}
@@ -449,6 +474,18 @@ export default function AdminServices() {
                       </select>
                     </div>
                   </div>
+                  <div className="sm:col-span-2">
+                    <label className="mb-1 block text-xs" style={{ color: 'var(--text-tertiary)' }}>Pricing Options (JSON array)</label>
+                    <textarea
+                      value={editForm.pricing ? JSON.stringify(editForm.pricing, null, 2) : ''}
+                      onChange={(e) => {
+                        try { setEditForm({ ...editForm, pricing: JSON.parse(e.target.value) }) } catch {}
+                      }}
+                      rows={5}
+                      className="w-full rounded border px-3 py-2 text-xs font-mono outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
                   <div className="sm:col-span-2 flex gap-2">
                     <button onClick={() => handleSave(item.id)} className="rounded px-3 py-1.5 text-xs text-white" style={{ background: '#10b981' }}>Save</button>
                     <button onClick={() => setEditingId(null)} className="rounded px-3 py-1.5 text-xs" style={{ background: 'var(--hover-bg)', color: 'var(--text-secondary)' }}>Cancel</button>
@@ -471,6 +508,21 @@ export default function AdminServices() {
                         ))}
                         {(item.features || []).length > 3 && (
                           <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>+{item.features.length - 3}</span>
+                        )}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-2">
+                        {item.price && (
+                          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                            {item.currency || '₹'}{item.price}{item.period || ''}
+                          </span>
+                        )}
+                        {item.delivery && (
+                          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                            {item.delivery}
+                          </span>
+                        )}
+                        {item.pricing && item.pricing.length > 0 && (
+                          <span className="text-[10px] text-cyan-500">{item.pricing.length} options</span>
                         )}
                       </div>
                     </div>

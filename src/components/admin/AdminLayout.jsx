@@ -16,11 +16,13 @@ const navItems = [
   { path: '/admin/social-links', label: 'Social Links', icon: '⊛' },
   { path: '/admin/reviews', label: 'Reviews', icon: '★' },
   { path: '/admin/messages', label: 'Messages', icon: '✉' },
+  { path: '/admin/payments', label: 'Payments', icon: '₹' },
   { path: '/admin/ads', label: 'Dev Ads', icon: '⊡' },
   { path: '/admin/users', label: 'Users', icon: '◎' },
   { path: '/admin/ai-automation', label: 'AI Automation', icon: '✦' },
   { path: '/admin/crm-config', label: 'CRM Config', icon: '⚙' },
   { path: '/admin/youtube-config', label: 'YouTube Config', icon: '⊡' },
+  { path: '/admin/payment-settings', label: 'Payment Settings', icon: '₹' },
 ]
 
 export default function AdminLayout({ children }) {

@@ -138,7 +138,23 @@ export function useCaseStudies() {
 export function useServices() {
   const [data, setData] = useState(staticServices)
   useEffect(() => {
-    fetchWithFallback(getServices, staticServices).then(setData)
+    fetchWithFallback(getServices, staticServices).then((result) => {
+      if (result && result !== staticServices && Array.isArray(result)) {
+        const merged = result.map((svc) => {
+          const fallback = staticServices.find((s) => s.service_id === svc.service_id)
+          if (!fallback) return svc
+          const mergedSvc = { ...fallback, ...svc }
+          for (const key of ['price', 'currency', 'period', 'delivery', 'pricing']) {
+            const val = svc[key]
+            if (val === null || val === undefined || val === '' || (Array.isArray(val) && val.length === 0)) {
+              mergedSvc[key] = fallback[key]
+            }
+          }
+          return mergedSvc
+        })
+        setData(merged)
+      }
+    })
   }, [])
   return data
 }
