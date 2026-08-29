@@ -12,8 +12,10 @@ function Skeleton() {
   )
 }
 
+const DEFAULT_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID || ''
+
 export default function AdminYouTubeConfig() {
-  const [channelId, setChannelId] = useState('')
+  const [channelId, setChannelId] = useState(DEFAULT_CHANNEL_ID)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -26,6 +28,7 @@ export default function AdminYouTubeConfig() {
     try {
       const settings = await getAdminSettings()
       if (settings?.youtube_channel_id) setChannelId(settings.youtube_channel_id)
+      else if (DEFAULT_CHANNEL_ID) setChannelId(DEFAULT_CHANNEL_ID)
     } catch {}
     setLoading(false)
   }

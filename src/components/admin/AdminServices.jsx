@@ -422,16 +422,12 @@ export default function AdminServices() {
                 </div>
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs" style={{ color: 'var(--text-tertiary)' }}>Pricing Options (JSON array)</label>
-                <textarea
-                  value={newForm.pricing ? JSON.stringify(newForm.pricing, null, 2) : ''}
-                  onChange={(e) => {
-                    try { setNewForm({ ...newForm, pricing: JSON.parse(e.target.value) }) } catch {}
-                  }}
-                  rows={5}
-                  className="w-full rounded border px-3 py-2 text-xs font-mono outline-none"
-                  style={inputStyle}
-                  placeholder='[{"label": "Landing Page", "price": "1.5k", "delivery": "1 week", "features": ["Responsive", "SEO"]}]'
+                <label className="mb-1 block text-xs" style={{ color: 'var(--text-tertiary)' }}>Pricing Options</label>
+                <ArrayItemEditor
+                  items={newForm.pricing || []}
+                  onChange={(val) => setNewForm({ ...newForm, pricing: val })}
+                  fields={pricingFields}
+                  itemLabel="Pricing Option"
                 />
               </div>
             </div>
@@ -487,15 +483,12 @@ export default function AdminServices() {
                     </div>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="mb-1 block text-xs" style={{ color: 'var(--text-tertiary)' }}>Pricing Options (JSON array)</label>
-                    <textarea
-                      value={editForm.pricing ? JSON.stringify(editForm.pricing, null, 2) : ''}
-                      onChange={(e) => {
-                        try { setEditForm({ ...editForm, pricing: JSON.parse(e.target.value) }) } catch {}
-                      }}
-                      rows={5}
-                      className="w-full rounded border px-3 py-2 text-xs font-mono outline-none"
-                      style={inputStyle}
+                    <label className="mb-1 block text-xs" style={{ color: 'var(--text-tertiary)' }}>Pricing Options</label>
+                    <ArrayItemEditor
+                      items={editForm.pricing || []}
+                      onChange={(val) => setEditForm({ ...editForm, pricing: val })}
+                      fields={pricingFields}
+                      itemLabel="Pricing Option"
                     />
                   </div>
                   <div className="sm:col-span-2 flex gap-2">

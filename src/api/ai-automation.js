@@ -55,7 +55,7 @@ const TOOL_TO_INTENT = {
 
 function extractNumber(text) {
   const m = text.match(/\d+/)
-  return m ? parseInt(m[1], 10) : null
+  return m ? parseInt(m[0], 10) : null
 }
 
 function extractQuoted(text) {
@@ -193,7 +193,7 @@ import { personalInfo, skills, projects, education, experience, blogPosts, servi
 
 async function handleGetPersonalInfo() {
   const { data, error } = await supabase.from('personal_info').select('*').single()
-  if (error || !data) return personalInfo
+  if (error || !data) return null
   return data
 }
 
@@ -218,7 +218,7 @@ async function handleUpdatePersonalInfo(args) {
 
 async function handleListSkills() {
   const { data, error } = await supabase.from('skills').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return skills
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -255,7 +255,7 @@ async function handleDeleteSkill(target) {
 
 async function handleListProjects() {
   const { data, error } = await supabase.from('projects').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return projects
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -295,7 +295,7 @@ async function handleDeleteProject(target) {
 
 async function handleListEducation() {
   const { data, error } = await supabase.from('education').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return education
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -318,7 +318,7 @@ async function handleDeleteEducation(target) {
 
 async function handleListExperience() {
   const { data, error } = await supabase.from('experience').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return experience
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -346,7 +346,7 @@ async function handleDeleteExperience(role, company) {
 
 async function handleListBlogPosts() {
   const { data, error } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false })
-  if (error || !data || data.length === 0) return blogPosts
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -421,13 +421,13 @@ Return ONLY valid JSON with no markdown, no code fences:
 
 async function handleListServices() {
   const { data, error } = await supabase.from('services').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return services
+  if (error || !data || data.length === 0) return []
   return data
 }
 
 async function handleListSocialLinks() {
   const { data, error } = await supabase.from('social_links').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return socialLinks
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -466,7 +466,7 @@ async function handleDashboardStats() {
 
 async function handleListCaseStudies() {
   const { data, error } = await supabase.from('case_studies').select('*').order('display_order', { ascending: true })
-  if (error || !data || data.length === 0) return caseStudies
+  if (error || !data || data.length === 0) return []
   return data
 }
 
@@ -551,6 +551,7 @@ export async function handleAiAutomation(message, history = []) {
     switch (intent) {
       case 'get_personal_info': {
         const info = await handleGetPersonalInfo()
+        if (!info) return { reply: 'No personal info in database yet. Ask me to create some or use the admin form.', action: { type: 'details', status: 'empty' } }
         return {
           reply: `**${info.name || 'Amit Kumar'}** — ${info.title || 'Full-Stack Developer'}\n_Tagline:_ ${info.tagline || '—'}\n_Bio:_ ${info.bio || '—'}`,
           action: { type: 'details', status: 'success', detail: 'Personal Info' },

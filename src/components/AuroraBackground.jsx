@@ -4,7 +4,7 @@ import { Float, MeshDistortMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 import ThreeErrorBoundary from '../lib/ThreeErrorBoundary'
 
-const noWebGl = import.meta.env.DEV || sessionStorage.getItem('na_no_canvas') === '1'
+const noWebGl = sessionStorage.getItem('na_no_canvas') === '1'
 if (noWebGl) sessionStorage.setItem('na_no_canvas', '1')
 
 function NeuralParticles({ count = 600 }) {

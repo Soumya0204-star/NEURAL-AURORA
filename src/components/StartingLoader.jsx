@@ -904,7 +904,7 @@ function CmdExplorer({ onBack }) {
   const typingEntry = useRef(null)
   const convRef = useRef([])
 
-  const data = dynamicData || { skills, projects, education, experience, services, caseStudies, blogPosts, personalInfo, socialLinks }
+  const data = dynamicData || { skills: [], projects: [], education: [], experience: [], services: [], caseStudies: [], blogPosts: [], personalInfo: {}, socialLinks: [] }
 
   useEffect(() => {
     Promise.all([
@@ -920,18 +920,18 @@ function CmdExplorer({ onBack }) {
     ]).then(([
       skillsDB, projectsDB, educationDB, experienceDB, servicesDB, caseStudiesDB, blogsDB, infoDB, socialDB,
     ]) => {
-      const hasData = skillsDB || projectsDB || educationDB || experienceDB || servicesDB || caseStudiesDB || blogsDB || infoDB || socialDB
+      const hasData = (skillsDB?.length) || (projectsDB?.length) || (educationDB?.length) || (experienceDB?.length) || (servicesDB?.length) || (caseStudiesDB?.length) || (blogsDB?.length) || infoDB || (socialDB?.length)
       if (hasData) {
         setDynamicData({
-          skills: skillsDB || skills,
-          projects: projectsDB || projects,
-          education: educationDB || education,
-          experience: experienceDB || experience,
-          services: servicesDB || services,
-          caseStudies: caseStudiesDB || caseStudies,
-          blogPosts: blogsDB || blogPosts,
-          personalInfo: infoDB || personalInfo,
-          socialLinks: socialDB || socialLinks,
+          skills: skillsDB?.length ? skillsDB : [],
+          projects: projectsDB?.length ? projectsDB : [],
+          education: educationDB?.length ? educationDB : [],
+          experience: experienceDB?.length ? experienceDB : [],
+          services: servicesDB?.length ? servicesDB : [],
+          caseStudies: caseStudiesDB?.length ? caseStudiesDB : [],
+          blogPosts: blogsDB?.length ? blogsDB : [],
+          personalInfo: infoDB || {},
+          socialLinks: socialDB?.length ? socialDB : [],
         })
       }
     })
@@ -1064,12 +1064,12 @@ function CmdExplorer({ onBack }) {
             className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3 space-y-1.5"
           >
             <div className="text-white font-bold text-sm" style={{ textShadow: '0 0 12px rgba(0,240,255,0.2)' }}>
-              {data.personalInfo.name}
+              {data.personalInfo?.name || 'Unknown'}
             </div>
-            <div className="text-neural-blue text-[11px] font-mono">@{data.personalInfo.handle}</div>
-            <div className="text-emerald-400 text-xs">{data.personalInfo.title}</div>
-            <div className="text-white/50 text-[11px] italic leading-relaxed">"{data.personalInfo.tagline}"</div>
-            <div className="text-white/35 text-[11px] leading-relaxed border-t border-white/[0.04] pt-1.5">{data.personalInfo.bio}</div>
+            <div className="text-neural-blue text-[11px] font-mono">@{data.personalInfo?.handle || 'user'}</div>
+            <div className="text-emerald-400 text-xs">{data.personalInfo?.title || 'Developer'}</div>
+            <div className="text-white/50 text-[11px] italic leading-relaxed">"{data.personalInfo?.tagline || ''}"</div>
+            <div className="text-white/35 text-[11px] leading-relaxed border-t border-white/[0.04] pt-1.5">{data.personalInfo?.bio || ''}</div>
           </motion.div>
         )
         break
@@ -1096,7 +1096,7 @@ function CmdExplorer({ onBack }) {
         addJSX(<BlogCards items={data.blogPosts} />)
         break
       case 'social':
-        addText(data.socialLinks.map(s => `  ${(s.label || s.platform).padEnd(18)} \u2192 ${s.url}`).join('\n'))
+        addText((data.socialLinks || []).map(s => `  ${(s?.label || s?.platform || '?').padEnd(18)} \u2192 ${s?.url || '#'}`).join('\n'))
         break
       case 'contact':
         addJSX(
@@ -1106,7 +1106,7 @@ function CmdExplorer({ onBack }) {
             <div className="flex items-center gap-2">
               <span className="text-white/60 text-[11px]">GitHub</span>
               <span className="text-white/20">{'\u2192'}</span>
-              <span className="text-blue-400/80 text-[11px]">https://github.com/{data.personalInfo.handle}</span>
+              <span className="text-blue-400/80 text-[11px]">https://github.com/{data.personalInfo?.handle || 'user'}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-white/60 text-[11px]">Email</span>
@@ -1124,9 +1124,9 @@ function CmdExplorer({ onBack }) {
           >
             <div className="text-white/80 text-[11px]">
               <span className="text-white/40">Resume: </span>
-              <a href={data.personalInfo.resume} target="_self" rel="noopener noreferrer"
+              <a href={data.personalInfo?.resume || '#'} target="_self" rel="noopener noreferrer"
                 className="text-blue-400 underline decoration-blue-400/30 hover:text-blue-300"
-              >{data.personalInfo.resume}</a>
+              >{data.personalInfo?.resume || 'Not available'}</a>
             </div>
             <div className="text-white/25 text-[10px] font-mono mt-1">
               {'\u2192'} Click the link to download
@@ -1330,27 +1330,27 @@ function InterviewMe({ onSuccess, name }) {
     let cancelled = false
     setDataLoading(true)
     Promise.all([
-      getPersonalInfoFromDB().catch(() => personalInfo),
-      getSkillsFromDB().catch(() => skills),
-      getProjectsFromDB().catch(() => projects),
-      getEducationFromDB().catch(() => education),
-      getExperienceFromDB().catch(() => experience),
-      getServicesFromDB().catch(() => services),
-      getCaseStudiesFromDB().catch(() => caseStudies),
-      getBlogPostsFromDB().catch(() => blogPosts),
-      getSocialLinksFromDB().catch(() => socialLinks),
+      getPersonalInfoFromDB().catch(() => null),
+      getSkillsFromDB().catch(() => []),
+      getProjectsFromDB().catch(() => []),
+      getEducationFromDB().catch(() => []),
+      getExperienceFromDB().catch(() => []),
+      getServicesFromDB().catch(() => []),
+      getCaseStudiesFromDB().catch(() => []),
+      getBlogPostsFromDB().catch(() => []),
+      getSocialLinksFromDB().catch(() => []),
     ]).then(([pi, sk, pr, ed, ex, sv, cs, bp, sl]) => {
       if (cancelled) return
       const d = {
-        personalInfo: pi || personalInfo,
-        skills: sk || skills,
-        projects: pr || projects,
-        education: ed || education,
-        experience: ex || experience,
-        services: sv || services,
-        caseStudies: cs || caseStudies,
-        blogPosts: bp || blogPosts,
-        socialLinks: sl || socialLinks,
+        personalInfo: pi || {},
+        skills: sk?.length ? sk : [],
+        projects: pr?.length ? pr : [],
+        education: ed?.length ? ed : [],
+        experience: ex?.length ? ex : [],
+        services: sv?.length ? sv : [],
+        caseStudies: cs?.length ? cs : [],
+        blogPosts: bp?.length ? bp : [],
+        socialLinks: sl?.length ? sl : [],
       }
       setLiveData(d)
       dataRef.current = d
@@ -1373,14 +1373,14 @@ function InterviewMe({ onSuccess, name }) {
           if (cancelled) return
           const d = {
             personalInfo: pi || current.personalInfo,
-            skills: sk || current.skills,
-            projects: pr || current.projects,
-            education: ed || current.education,
-            experience: ex || current.experience,
-            services: sv || current.services,
-            caseStudies: cs || current.caseStudies,
-            blogPosts: bp || current.blogPosts,
-            socialLinks: sl || current.socialLinks,
+            skills: sk?.length ? sk : current.skills,
+            projects: pr?.length ? pr : current.projects,
+            education: ed?.length ? ed : current.education,
+            experience: ex?.length ? ex : current.experience,
+            services: sv?.length ? sv : current.services,
+            caseStudies: cs?.length ? cs : current.caseStudies,
+            blogPosts: bp?.length ? bp : current.blogPosts,
+            socialLinks: sl?.length ? sl : current.socialLinks,
           }
           setLiveData(d)
           dataRef.current = d
@@ -1395,16 +1395,16 @@ function InterviewMe({ onSuccess, name }) {
   }, [])
 
   const synth = typeof window !== 'undefined' ? window.speechSynthesis : null
-  const voiceApiBase = (import.meta.env.VITE_VOICE_API_BASE || import.meta.env.VITE_AI_API_BASE || 'https://openrouter.ai/api/v1').replace(/\/+$/, '')
+  const voiceApiBase = (import.meta.env.VITE_VOICE_API_BASE || 'https://openrouter.ai/api/v1').replace(/\/+$/, '')
   const voiceModel = import.meta.env.VITE_VOICE_MODEL || ''
-  const apiKey = import.meta.env.VITE_AI_API_KEY
+  const voiceApiKey = import.meta.env.VITE_VOICE_API_KEY || import.meta.env.VITE_AI_API_KEY
 
   async function tts(text, model) {
     const voice = ttsVoices[voiceIndexRef.current % ttsVoices.length]
     voiceIndexRef.current++
     const res = await fetch(`${voiceApiBase}/audio/speech`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${voiceApiKey}` },
       body: JSON.stringify({ model, input: text, voice, response_format: 'mp3' }),
     })
     if (!res.ok) return false
@@ -1420,7 +1420,7 @@ function InterviewMe({ onSuccess, name }) {
 
   async function speak(text) {
     if (!mountedRef.current) return
-    if (voiceModel && apiKey) {
+    if (voiceModel && voiceApiKey) {
       try {
         const ok = await tts(text, voiceModel)
         if (ok) return
@@ -1457,13 +1457,13 @@ function InterviewMe({ onSuccess, name }) {
     return t.charAt(0).toUpperCase() + t.slice(1)
   }
 
-  const data = liveData || { skills, projects, education, experience, services, caseStudies, blogPosts, personalInfo, socialLinks }
+  const data = liveData || { skills: [], projects: [], education: [], experience: [], services: [], caseStudies: [], blogPosts: [], personalInfo: {}, socialLinks: [] }
 
   useEffect(() => {
     if (step !== 'intro') return
     if (dataLoading) return
     ;(async () => {
-      const title = data.personalInfo.title || 'creator'
+      const title = data.personalInfo?.title || 'creator'
       await speak(`I am Neural Aurora. I speak for ${name}, ${title}. Ask me anything.`)
       if (mountedRef.current) setStep('listening')
     })()
@@ -1591,40 +1591,41 @@ function InterviewMe({ onSuccess, name }) {
     const conv = (history || []).map(h => `${h.role === 'visitor' ? 'Visitor' : name}: ${h.text}`).join('\n')
     try {
       const currentData = dataRef.current || data
-      const systemContent = `You are ${name}, a founder, creator, and ${currentData.personalInfo.title || 'builder'}. A visitor is interviewing you. Respond as YOURSELF — direct, confident, warm, professional. Use "I", "my", "me". Keep responses to 1-2 crisp sentences. Never use emojis or exclamation marks. Sound like a CEO: concise, assured, genuine.
+      const pi = currentData.personalInfo || {}
+      const systemContent = `You are ${name}, a founder, creator, and ${pi.title || 'builder'}. A visitor is interviewing you. Respond as YOURSELF — direct, confident, warm, professional. Use "I", "my", "me". Keep responses to 1-2 crisp sentences. Never use emojis or exclamation marks. Sound like a CEO: concise, assured, genuine.
 
 You learn and adapt from every interaction. Use conversation history to build context, recall previous topics, and respond naturally.
 
 YOUR PORTFOLIO (live data synced in real-time):
-Name: ${currentData.personalInfo.name}
-Title: ${currentData.personalInfo.title}
-Bio: ${currentData.personalInfo.bio}
-Tagline: ${currentData.personalInfo.tagline}
-Resume: ${currentData.personalInfo.resume}
+Name: ${pi.name || name}
+Title: ${pi.title || 'Creator'}
+Bio: ${pi.bio || ''}
+Tagline: ${pi.tagline || ''}
+Resume: ${pi.resume || ''}
 
-Skills (${currentData.skills.length} total):
-${currentData.skills.map(s => `- ${s.name} (${s.level}% proficiency)`).join('\n')}
+Skills (${(currentData.skills || []).length} total):
+${(currentData.skills || []).map(s => `- ${s.name || '?'} (${s.level || 0}% proficiency)`).join('\n')}
 
-Projects (${currentData.projects.length} total):
-${currentData.projects.map(p => `- ${p.title}: ${p.description} [Technologies: ${p.technologies?.join(', ') || 'Various'}]`).join('\n')}
+Projects (${(currentData.projects || []).length} total):
+${(currentData.projects || []).map(p => `- ${p.title || '?'}: ${p.description || ''} [Technologies: ${p.technologies?.join(', ') || 'Various'}]`).join('\n')}
 
-Professional Experience (${currentData.experience.length} total):
-${currentData.experience.map(e => `- ${e.role} @ ${e.company} (${e.year}) — ${e.description || ''}`).join('\n')}
+Professional Experience (${(currentData.experience || []).length} total):
+${(currentData.experience || []).map(e => `- ${e.role || '?'} @ ${e.company || '?'} (${e.year || ''}) — ${e.description || ''}`).join('\n')}
 
-Education (${currentData.education.length} total):
-${currentData.education.map(e => `- ${e.degree} @ ${e.school} (${e.year})`).join('\n')}
+Education (${(currentData.education || []).length} total):
+${(currentData.education || []).map(e => `- ${e.degree || '?'} @ ${e.school || '?'} (${e.year || ''})`).join('\n')}
 
-Services Offered (${currentData.services.length} total):
-${currentData.services.map(s => `- ${s.title}: ${s.tagline}`).join('\n')}
+Services Offered (${(currentData.services || []).length} total):
+${(currentData.services || []).map(s => `- ${s.title || '?'}: ${s.tagline || ''}`).join('\n')}
 
-Blog Posts (${currentData.blogPosts.length} total):
-${currentData.blogPosts.map(b => `- "${b.title}" (${b.date || b.created_at?.slice(0, 10) || 'Recent'})`).join('\n')}
+Blog Posts (${(currentData.blogPosts || []).length} total):
+${(currentData.blogPosts || []).map(b => `- "${b.title || '?'}" (${b.date || b.created_at?.slice(0, 10) || 'Recent'})`).join('\n')}
 
-Case Studies (${currentData.caseStudies.length} total):
-${currentData.caseStudies.map(c => `- ${c.title}: ${c.description || ''}`).join('\n')}
+Case Studies (${(currentData.caseStudies || []).length} total):
+${(currentData.caseStudies || []).map(c => `- ${c.title || '?'}: ${c.description || ''}`).join('\n')}
 
 Social / Contact:
-${currentData.socialLinks.map(s => `- ${s.label || s.platform}: ${s.url}`).join('\n')}
+${(currentData.socialLinks || []).map(s => `- ${s.label || s.platform || '?'}: ${s.url || '#'}`).join('\n')}
 
 PRODUCT — Neural Aurora CRM (wacrm):
 - Description: A self-hostable CRM template for WhatsApp Business API with shared inbox, contacts, sales pipelines, broadcasts, and no-code automations.
@@ -2344,6 +2345,7 @@ export default function StartingLoader({ onComplete }) {
     try {
       const settings = await getAdminSettings()
       if (settings?.youtube_channel_id) setYtChannelId(settings.youtube_channel_id)
+      else if (import.meta.env.VITE_YOUTUBE_CHANNEL_ID) setYtChannelId(import.meta.env.VITE_YOUTUBE_CHANNEL_ID)
       if (settings?.docs_url) {
         setDocsUrl(settings.docs_url)
         saveDocsUrl(settings.docs_url)

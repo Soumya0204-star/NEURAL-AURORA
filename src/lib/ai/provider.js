@@ -33,8 +33,53 @@ export async function callAi(messages, tools, opts) {
 
   if (!res.ok) {
     const err = await res.text()
+    console.error(`[AI Provider] ${res.status} from ${res.url}:`, err)
     throw new Error(`AI API error (${res.status}): ${err}`)
   }
 
   return res.json()
+}
+
+export async function diagnoseAi() {
+  try {
+    const res = await fetch(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: MODEL || 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Say hello' }],
+        max_tokens: 10,
+      }),
+    })
+    const info = {
+      baseUrl: API_BASE,
+      model: MODEL,
+      keySet: !!API_KEY,
+      keyPrefix: API_KEY ? API_KEY.slice(0, 8) + '...' : '(none)',
+      status: res.status,
+      ok: res.ok,
+    }
+    if (!res.ok) {
+      const text = await res.text()
+      info.error = text.slice(0, 500)
+      console.error('[AI Diagnose] Failed:', info)
+    } else {
+      console.log('[AI Diagnose] OK:', info)
+    }
+    return info
+  } catch (err) {
+    const info = {
+      baseUrl: API_BASE,
+      model: MODEL,
+      keySet: !!API_KEY,
+      keyPrefix: API_KEY ? API_KEY.slice(0, 8) + '...' : '(none)',
+      ok: false,
+      error: err.message,
+    }
+    console.error('[AI Diagnose] Network error:', info)
+    return info
+  }
 }

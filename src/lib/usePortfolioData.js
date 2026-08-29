@@ -55,11 +55,21 @@ export function usePersonalInfo() {
   return { data, loaded }
 }
 
+function setIfNonEmpty(setter, fallback) {
+  return (data) => {
+    if (data && (!Array.isArray(data) || data.length > 0)) {
+      setter(data)
+    } else {
+      setter(fallback)
+    }
+  }
+}
+
 export function useSocialLinks() {
   const [data, setData] = useState(staticSocialLinks)
   useEffect(() => {
     if (supabaseConfigured) {
-      getSocialLinks().then(setData).catch(() => {})
+      getSocialLinks().then(setIfNonEmpty(setData, staticSocialLinks)).catch(() => {})
     }
   }, [])
   return data
@@ -69,7 +79,7 @@ export function useSkills() {
   const [data, setData] = useState(staticSkills)
   useEffect(() => {
     if (supabaseConfigured) {
-      getSkills().then(setData).catch(() => {})
+      getSkills().then(setIfNonEmpty(setData, staticSkills)).catch(() => {})
     }
   }, [])
   return data
@@ -79,7 +89,7 @@ export function useProjects() {
   const [data, setData] = useState(staticProjects)
   useEffect(() => {
     if (supabaseConfigured) {
-      getProjects().then(setData).catch(() => {})
+      getProjects().then(setIfNonEmpty(setData, staticProjects)).catch(() => {})
     }
   }, [])
   return data
@@ -89,7 +99,7 @@ export function useEducation() {
   const [data, setData] = useState(staticEducation)
   useEffect(() => {
     if (supabaseConfigured) {
-      getEducation().then(setData).catch(() => {})
+      getEducation().then(setIfNonEmpty(setData, staticEducation)).catch(() => {})
     }
   }, [])
   return data
@@ -99,7 +109,7 @@ export function useExperience() {
   const [data, setData] = useState(staticExperience)
   useEffect(() => {
     if (supabaseConfigured) {
-      getExperience().then(setData).catch(() => {})
+      getExperience().then(setIfNonEmpty(setData, staticExperience)).catch(() => {})
     }
   }, [])
   return data
@@ -109,7 +119,7 @@ export function useBlogPosts() {
   const [data, setData] = useState(staticBlogPosts)
   useEffect(() => {
     if (supabaseConfigured) {
-      getBlogPosts().then(setData).catch(() => {})
+      getBlogPosts().then(setIfNonEmpty(setData, staticBlogPosts)).catch(() => {})
     }
   }, [])
   return data
@@ -119,7 +129,7 @@ export function useCaseStudyBySlug(slug) {
   const [data, setData] = useState(() => staticCaseStudies.find((s) => s.slug === slug) || null)
   useEffect(() => {
     if (supabaseConfigured && slug) {
-      getCaseStudyBySlug(slug).then(setData).catch(() => {})
+      getCaseStudyBySlug(slug).then(setIfNonEmpty(setData, data)).catch(() => {})
     }
   }, [slug])
   return data
@@ -129,7 +139,7 @@ export function useCaseStudies() {
   const [data, setData] = useState(staticCaseStudies)
   useEffect(() => {
     if (supabaseConfigured) {
-      getCaseStudies().then(setData).catch(() => {})
+      getCaseStudies().then(setIfNonEmpty(setData, staticCaseStudies)).catch(() => {})
     }
   }, [])
   return data
