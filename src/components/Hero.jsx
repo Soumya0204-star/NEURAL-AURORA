@@ -21,11 +21,13 @@ function SocialIcon({ name, url }) {
       href={url}
       target="_self"
       rel="noopener noreferrer"
+      aria-label={`${name} profile`}
       whileHover={{ scale: 1.1, y: -2 }}
       whileTap={{ scale: 0.95 }}
       className="w-10 h-10 rounded-full glass-panel flex items-center justify-center group hover:scale-110 active:scale-95"
     >
       <svg
+        aria-hidden="true"
         viewBox="0 0 24 24"
         fill="currentColor"
         className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-black/80 dark:group-hover:text-white/80 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
