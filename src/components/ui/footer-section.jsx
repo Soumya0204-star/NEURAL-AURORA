@@ -134,9 +134,13 @@ export function Footer() {
                     href={link.url}
                     target="_self"
                     rel="noopener noreferrer"
+                    aria-label={`${link.label} profile`}
                     className="text-black/30 dark:text-white/20 hover:text-black/60 dark:hover:text-white/60 active:scale-90 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon
+                      aria-hidden="true"
+                      className="w-4 h-4"
+                    />
                   </a>
                 )
               })}
