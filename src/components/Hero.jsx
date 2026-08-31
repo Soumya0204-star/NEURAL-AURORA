@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { usePersonalInfo, useSocialLinks } from '../lib/usePortfolioData'
 import { SplineScene } from './ui/splite'
 import { Spotlight } from './ui/spotlight'
@@ -54,6 +54,7 @@ const itemVariants = {
 }
 
 export default function Hero() {
+  const shouldReduceMotion = useReducedMotion()
   const { data: personalInfo } = usePersonalInfo()
   const socialLinks = useSocialLinks()
   return (
@@ -143,8 +144,8 @@ export default function Hero() {
                 </div>
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
                   <motion.div
-                    animate={{ y: [0, -4, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={ shouldReduceMotion ? undefined : { y: [0, -4, 0] }}
+                    transition={ shouldReduceMotion ? undefined : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                     className="px-5 py-2.5 rounded-2xl backdrop-blur-sm border border-[#00f0ff]/20"
                     style={{ background: 'var(--glass-bg)' }}
                   >
@@ -169,8 +170,8 @@ export default function Hero() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
         >
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            animate={ shouldReduceMotion ? undefined : { y: [0, 8, 0] }}
+            transition={ shouldReduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             className="w-5 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-start justify-center pt-2"
           >
             <div className="w-1 h-2 rounded-full bg-black/30 dark:bg-white/30" />

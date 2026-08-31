@@ -1,4 +1,5 @@
 import { useRef, useMemo, useEffect, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float, MeshDistortMaterial } from '@react-three/drei'
 import * as THREE from 'three'
@@ -7,7 +8,7 @@ import ThreeErrorBoundary from '../lib/ThreeErrorBoundary'
 const noWebGl = sessionStorage.getItem('na_no_canvas') === '1'
 if (noWebGl) sessionStorage.setItem('na_no_canvas', '1')
 
-function NeuralParticles({ count = 600 }) {
+function NeuralParticles({ count = 600, shouldReduceMotion }) {
   const meshRef = useRef()
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3)
@@ -21,6 +22,8 @@ function NeuralParticles({ count = 600 }) {
 
   useFrame((state) => {
     if (!meshRef.current) return
+    if (shouldReduceMotion) return
+
     try {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.02
       meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.01) * 0.1
@@ -49,11 +52,13 @@ function NeuralParticles({ count = 600 }) {
   )
 }
 
-function AuroraWaves() {
+function AuroraWaves({ shouldReduceMotion }) {
   const meshRef = useRef()
   const meshRef2 = useRef()
 
   useFrame((state) => {
+    if (shouldReduceMotion) return
+
     try {
       const t = state.clock.elapsedTime
       if (meshRef.current) {
@@ -95,7 +100,7 @@ function AuroraWaves() {
   )
 }
 
-function NeuralNodes() {
+function NeuralNodes({ shouldReduceMotion }) {
   const nodes = useMemo(() => {
     const arr = []
     for (let i = 0; i < 30; i++) {
@@ -131,7 +136,7 @@ function NeuralNodes() {
   return (
     <group>
       {nodes.map((node, i) => (
-        <Float key={i} speed={0.5 + Math.random() * 0.5} rotationIntensity={0.05} floatIntensity={0.3}>
+        <Float key={i} speed={shouldReduceMotion ? 0 : 0.5 + Math.random() * 0.5} rotationIntensity={shouldReduceMotion ? 0 : 0.05} floatIntensity={shouldReduceMotion ? 0 : 0.3}>
           <mesh position={node.position} scale={node.scale}>
             <sphereGeometry args={[0.15, 16, 16]} />
             <meshBasicMaterial color={node.color} transparent opacity={0.7} />
@@ -158,7 +163,7 @@ function NeuralNodes() {
   )
 }
 
-function SynapticFire({ mouse }) {
+function SynapticFire({ mouse, shouldReduceMotion }) {
   const ref = useRef()
   const particles = useMemo(() => {
     const pos = new Float32Array(100 * 3)
@@ -172,6 +177,8 @@ function SynapticFire({ mouse }) {
 
   useFrame((state) => {
     if (!ref.current) return
+    if (shouldReduceMotion) return
+    
     try {
       const tx = (mouse?.current?.x || 0) * 2
       const ty = -(mouse?.current?.y || 0) * 2
@@ -228,7 +235,7 @@ function ThemeBackground({ onContextLost }) {
   return null
 }
 
-function ThreeScene({ mouse }) {
+function ThreeScene({ mouse, shouldReduceMotion }) {
   const [crashed, setCrashed] = useState(false)
 
   if (crashed) return null
@@ -241,10 +248,10 @@ function ThreeScene({ mouse }) {
       >
         <ThemeBackground onContextLost={() => { sessionStorage.setItem('na_no_canvas', '1'); setCrashed(true) }} />
         <color attach="background" args={['#050508']} />
-        <NeuralParticles />
-        <AuroraWaves />
-        <NeuralNodes />
-        <SynapticFire mouse={mouse} />
+        <NeuralParticles shouldReduceMotion={shouldReduceMotion} />
+        <AuroraWaves shouldReduceMotion={shouldReduceMotion} />
+        <NeuralNodes shouldReduceMotion={shouldReduceMotion} />
+        <SynapticFire mouse={mouse} shouldReduceMotion={shouldReduceMotion} />
         <ambientLight intensity={0.3} />
         <pointLight position={[10, 10, 10]} intensity={0.5} />
       </Canvas>
@@ -253,9 +260,16 @@ function ThreeScene({ mouse }) {
 }
 
 export default function AuroraBackground({ mouse }) {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <div className="fixed inset-0 z-0 noise-overlay">
-      {noWebGl ? null : <ThreeScene mouse={mouse} />}
+      {noWebGl ? null : (
+        <ThreeScene 
+        mouse={mouse}
+        shouldReduceMotion={shouldReduceMotion}
+      />
+      )}
     </div>
   )
 }
