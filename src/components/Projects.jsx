@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useProjects } from '../lib/usePortfolioData'
 
-function ProjectImage({ src, alt, children }) {
+function ProjectImage({ src, alt, children, shouldReduceMotion }) {
   const [loaded, setLoaded] = useState(false)
 
   return (
@@ -53,22 +53,22 @@ function PlayIcon() {
   )
 }
 
-function ProjectCard({ project, index }) {
+function ProjectCard({ project, index, shouldReduceMotion }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 40 }}
+      whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
-      transition={{ delay: index * 0.1, type: 'spring', stiffness: 80, damping: 20 }}
+      transition={shouldReduceMotion ? undefined : { delay: index * 0.1, type: 'spring', stiffness: 80, damping: 20 }}
       className={`glass-panel rounded-[2rem] overflow-hidden group cursor-pointer transition-all duration-500 ${
         expanded ? 'md:col-span-2 md:row-span-2' : ''
       }`}
       onClick={() => setExpanded(!expanded)}
     >
-      <ProjectImage src={project.image} alt={project.title}>
+      <ProjectImage src={project.image} alt={project.title} shouldReduceMotion={shouldReduceMotion}>
         <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-transparent" />
         <div className="absolute top-4 left-4 flex gap-2">
           {project.technologies.slice(0, 2).map((tech) => (
@@ -102,10 +102,10 @@ function ProjectCard({ project, index }) {
         <AnimatePresence>
           {expanded && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, height: 0 }}
+              animate={shouldReduceMotion ? undefined : { opacity: 1, height: 'auto' }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, height: 0 }}
+              transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 80, damping: 20 }}
               className="space-y-4 pt-2"
             >
               <div className="flex flex-wrap gap-2">
@@ -147,15 +147,16 @@ function ProjectCard({ project, index }) {
 }
 
 export default function Projects() {
+  const shouldReduceMotion = useReducedMotion()
   const projects = useProjects()
   return (
     <section id="projects" className="relative z-10 py-32 md:py-40">
       <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="mb-16"
         >
           <span className="eyebrow">Portfolio</span>
@@ -169,7 +170,7 @@ export default function Projects() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 auto-rows-auto">
           {projects.map((project, i) => (
-            <ProjectCard key={project.id} project={project} index={i} />
+            <ProjectCard key={project.id} project={project} index={i} shouldReduceMotion={shouldReduceMotion} />
           ))}
         </div>
       </div>
