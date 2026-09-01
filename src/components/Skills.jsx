@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useSkills } from '../lib/usePortfolioData'
 
 const categories = [
@@ -9,13 +9,13 @@ const categories = [
   { key: 'design', label: 'Design', color: '#00ff87' },
 ]
 
-function SkillBar({ name, level, color, index }) {
+function SkillBar({ name, level, color, index, shouldReduceMotion }) {  
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, x: -20 }}
+      whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.05, type: 'spring', stiffness: 80, damping: 18 }}
+      transition={shouldReduceMotion ? undefined : { delay: index * 0.05, type: 'spring', stiffness: 80, damping: 18 }}
       className="space-y-2"
     >
       <div className="flex justify-between items-center">
@@ -24,10 +24,10 @@ function SkillBar({ name, level, color, index }) {
       </div>
       <div className="h-[2px] bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
           <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: `${level}%` }}
+            initial={shouldReduceMotion ? false : { width: 0 }}
+            whileInView={shouldReduceMotion ? undefined : { width: `${level}%` }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 + index * 0.05, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.2 + index * 0.05, duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="h-full rounded-full animate-shimmer"
             style={{ background: `linear-gradient(90deg, ${color}, ${color}88, ${color})` }}
           />
@@ -37,15 +37,16 @@ function SkillBar({ name, level, color, index }) {
 }
 
 export default function Skills() {
+  const shouldReduceMotion = useReducedMotion()
   const skills = useSkills()
   return (
     <section id="skills" className="relative z-10 py-32 md:py-40">
       <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="mb-16"
         >
           <span className="eyebrow">Expertise</span>
@@ -60,10 +61,10 @@ export default function Skills() {
             return (
               <motion.div
                 key={cat.key}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+                whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: catIdx * 0.1, type: 'spring', stiffness: 80, damping: 20 }}
+                transition={shouldReduceMotion ? undefined : { delay: catIdx * 0.1, type: 'spring', stiffness: 80, damping: 20 }}
                 className="glass-panel rounded-[2rem] p-8 md:p-10"
               >
                 <div className="flex items-center gap-3 mb-8">
@@ -82,6 +83,7 @@ export default function Skills() {
                       {...skill}
                       color={cat.color}
                       index={i}
+                      shouldReduceMotion={shouldReduceMotion}
                     />
                   ))}
                 </div>
