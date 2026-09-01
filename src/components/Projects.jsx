@@ -14,6 +14,10 @@ function ProjectImage({ src, alt, children }) {
         layout
         src={src}
         alt={alt}
+        width={800}
+        height={600}
+        loading="lazy"
+        decoding="async"
         initial={{ opacity: 0, scale: 1.05 }}
         animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 1.05 }}
         onLoad={() => setLoaded(true)}
