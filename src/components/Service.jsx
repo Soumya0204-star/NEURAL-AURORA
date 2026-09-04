@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
 const { CheckCircle, ArrowRight, ChevronDown, Layers, Send, Wallet } = LucideIcons
 import { useSocialLinks, useServices, useServicePage } from '../lib/usePortfolioData'
@@ -28,6 +28,7 @@ const childVariants = {
 
 function TiltCard({ children, className }) {
   const ref = useRef(null)
+  const shouldReduceMotion = useReducedMotion()
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const mouseX = useSpring(x, { stiffness: 300, damping: 30 })
@@ -36,19 +37,24 @@ function TiltCard({ children, className }) {
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-4, 4])
 
   const handleMouse = (e) => {
+    if (shouldReduceMotion) return
     const rect = ref.current.getBoundingClientRect()
     x.set((e.clientX - rect.left) / rect.width - 0.5)
     y.set((e.clientY - rect.top) / rect.height - 0.5)
   }
 
-  const handleLeave = () => { x.set(0); y.set(0) }
+  const handleLeave = () => {
+    if (shouldReduceMotion) return
+    x.set(0)
+    y.set(0)
+  }
 
   return (
     <motion.div
       ref={ref}
       onMouseMove={handleMouse}
       onMouseLeave={handleLeave}
-      style={{ rotateX, rotateY, perspective: 1000 }}
+      style={{ rotateX: shouldReduceMotion ? 0 : rotateX, rotateY: shouldReduceMotion ? 0 : rotateY, perspective: 1000 }}
       className={className}
     >
       {children}
@@ -58,11 +64,16 @@ function TiltCard({ children, className }) {
 
 function AnimatedCounter({ value, suffix = '' }) {
   const ref = useRef(null)
+  const shouldReduceMotion = useReducedMotion()
   const inView = useInView(ref, { once: true })
   const [count, setCount] = useState(0)
 
   useEffect(() => {
     if (!inView) return
+    if (shouldReduceMotion) {
+      setCount(value)
+      return
+    }
     let start = 0
     const duration = 2000
     const steps = 40
@@ -77,7 +88,7 @@ function AnimatedCounter({ value, suffix = '' }) {
       }
     }, duration / steps)
     return () => clearInterval(timer)
-  }, [inView, value])
+  }, [inView, value, shouldReduceMotion])
 
   return (
     <span ref={ref} className="text-3xl md:text-4xl font-display font-bold tracking-tight text-black/80 dark:text-white/90 tabular-nums">
@@ -87,6 +98,7 @@ function AnimatedCounter({ value, suffix = '' }) {
 }
 
 function ServiceCard({ service, index }) {
+  const shouldReduceMotion = useReducedMotion()
   const hasPrice = service.price && service.price !== '0'
   const navigate = useNavigate()
   return (
@@ -113,8 +125,8 @@ function ServiceCard({ service, index }) {
           className="relative flex flex-col h-full"
         >
           <motion.div
-            whileHover={{ scale: 1.05, rotate: [0, -4, 4, 0] }}
-            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.05, rotate: [0, -4, 4, 0] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 15 }}
             className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center mb-5 ring-1 ring-black/5 dark:ring-white/10 group-hover:ring-cyan-500/30 transition-all duration-500"
           >
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
@@ -144,8 +156,8 @@ function ServiceCard({ service, index }) {
                 className="flex items-start gap-2.5 text-xs text-black/50 dark:text-white/50"
               >
                 <motion.span
-                  whileHover={{ scale: 1.3, rotate: [0, -10, 10, 0] }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                  whileHover={shouldReduceMotion ? undefined : { scale: 1.3, rotate: [0, -10, 10, 0] }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 10 }}
                 >
                   <CheckCircle className="w-3.5 h-3.5 text-cyan-500 mt-0.5 shrink-0" />
                 </motion.span>
@@ -206,8 +218,8 @@ function ServiceCard({ service, index }) {
                 View Details
               </motion.span>
               <motion.span
-                animate={{ x: [0, 3, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                animate={shouldReduceMotion ? undefined : { x: [0, 3, 0] }}
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center group-hover/btn:bg-cyan-500/20 transition-colors duration-300"
               >
                 <ArrowRight className="w-3 h-3" />
@@ -249,6 +261,7 @@ function ProcessStep({ step, index }) {
 }
 
 function PackageCard({ pkg, index, onPayment, paying }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <motion.div
       custom={index}
@@ -280,7 +293,7 @@ function PackageCard({ pkg, index, onPayment, paying }) {
       <button
         onClick={() => onPayment?.(pkg)}
         disabled={paying}
-        className={`w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-xs uppercase tracking-widest font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100 ${
+        className={`w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-xs uppercase tracking-widest font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${shouldReduceMotion ? '' : 'hover:scale-[1.02] active:scale-[0.97]'} disabled:opacity-50 disabled:hover:scale-100 ${
           pkg.popular
             ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
             : 'bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/70 hover:bg-black/10 dark:hover:bg-white/10'
@@ -344,15 +357,17 @@ function FAQItem({ faq, index, openIndex, setOpenIndex }) {
 }
 
 function LiveStatusCard({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
+    if (shouldReduceMotion) return
     const interval = setInterval(() => {
       setVisible(false)
       setTimeout(() => setVisible(true), 200)
     }, 5000)
     return () => clearInterval(interval)
-  }, [])
+  }, [shouldReduceMotion])
 
   if (!items || items.length === 0) return null
 
@@ -360,7 +375,7 @@ function LiveStatusCard({ items }) {
     <div className="glass-panel rounded-2xl p-6 md:p-8 overflow-hidden relative">
       <div className="flex items-center gap-2 mb-5">
         <span className="relative flex w-2 h-2">
-          <span className={`absolute inset-0 rounded-full bg-green-500 ${visible ? 'animate-ping' : ''}`} />
+          <span className={`absolute inset-0 rounded-full bg-green-500 ${visible && !shouldReduceMotion ? 'animate-ping' : ''}`} />
           <span className="relative rounded-full w-2 h-2 bg-green-500" />
         </span>
         <span className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-medium">
@@ -394,6 +409,7 @@ function LiveStatusCard({ items }) {
 }
 
 function FutureReleaseCard({ release, index }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -417,7 +433,7 @@ function FutureReleaseCard({ release, index }) {
               </div>
             </div>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest font-medium border bg-amber-500/10 border-amber-500/20 text-amber-400 shrink-0 ml-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className={`w-1.5 h-1.5 rounded-full bg-amber-400 ${shouldReduceMotion ? '' : 'animate-pulse'}`} />
               Coming Soon
             </span>
           </div>
@@ -437,6 +453,7 @@ function FutureReleaseCard({ release, index }) {
 }
 
 export default function Service() {
+  const shouldReduceMotion = useReducedMotion()
   const socialLinks = useSocialLinks()
   const services = useServices()
   const page = useServicePage()
@@ -751,7 +768,7 @@ export default function Service() {
                   {techStack.map((tech) => (
                     <motion.span
                       key={tech.label}
-                      whileHover={{ scale: 1.05, y: -1 }}
+                      whileHover={shouldReduceMotion ? undefined : { scale: 1.05, y: -1 }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 text-[10px] uppercase tracking-wider text-black/50 dark:text-white/50 hover:text-black/80 dark:hover:text-white/80 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       <ResolvedIcon name={tech.icon_name} className="w-3 h-3" />
@@ -834,7 +851,7 @@ export default function Service() {
                       href={link.url}
                       target="_self"
                       rel="noopener noreferrer"
-                      whileHover={{ x: 4 }}
+                      whileHover={shouldReduceMotion ? undefined : { x: 4 }}
                       className="group flex items-center gap-2 text-xs text-black/50 dark:text-white/40 hover:text-black/80 dark:hover:text-white/80 transition-colors duration-300"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-black/10 dark:bg-white/10 group-hover:bg-[#00f0ff]" />
@@ -912,8 +929,8 @@ export default function Service() {
                   <motion.button
                     type="submit"
                     disabled={contactStatus === 'sending'}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                     className="group w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-xs uppercase tracking-widest font-medium transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {contactStatus === 'sending' ? (
