@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, Wallet, Clock, Send, Sparkles } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
@@ -27,12 +27,23 @@ function ResolvedIcon({ name, className = 'w-8 h-8' }) {
 function ScrollSection({ children, className, delay = 0 }) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
+  const shouldReduceMotion = useReducedMotion()
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay }}
+      animate={
+        inView
+          ? shouldReduceMotion
+            ? { opacity: 1 }
+            : { opacity: 1, y: 0 }
+          : {}
+      }
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }
+          : { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay }
+      }
       className={className}
     >
       {children}
@@ -51,14 +62,16 @@ function DoubleBezel({ children, className, outerClass, innerClass }) {
 }
 
 function MagneticButton({ children, className, disabled, onClick, type = 'button' }) {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <motion.button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -2 }}
+      whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+      transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 20 }}
       className={`group relative overflow-hidden rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-xs uppercase tracking-widest font-medium shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       <motion.span
@@ -88,6 +101,7 @@ const staggerItem = {
 }
 
 export default function ServiceDetail() {
+  const shouldReduceMotion = useReducedMotion()
   const { serviceId } = useParams()
   const { data: services } = useServices()
   const service = services.find((s) => s.service_id === serviceId)
@@ -163,8 +177,15 @@ export default function ServiceDetail() {
         <ServiceNavbar />
         <main className="relative z-10 max-w-[700px] mx-auto px-6 md:px-12 pt-32 pb-20 text-center">
           <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="eyebrow">404</motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-2xl font-bold text-black/80 dark:text-white/80 mt-4">Service not found</motion.h1>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.1 }} className="text-2xl font-bold text-black/80 dark:text-white/80 mt-4">Service not found</motion.h1>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.2 }}
+          >
             <Link to="/services" className="inline-flex items-center gap-2 text-xs text-cyan-500 hover:text-cyan-400 mt-4 transition-colors">
               <ArrowLeft className="w-3 h-3" />
               Back to services
@@ -188,7 +209,10 @@ export default function ServiceDetail() {
             to="/services"
             className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/30 hover:text-cyan-500 transition-colors mb-12 group"
           >
-            <motion.span whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
+            <motion.span
+              whileHover={shouldReduceMotion ? undefined : { x: -4 }}
+              transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 20 }}
+            >
               <ArrowLeft className="w-3 h-3" />
             </motion.span>
             Back to services
@@ -199,8 +223,8 @@ export default function ServiceDetail() {
         <ScrollSection delay={0.05}>
           <div className="flex items-start gap-5 mb-8">
             <motion.div
-              whileHover={{ scale: 1.1, rotate: [0, -6, 6, 0] }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.1, rotate: [0, -6, 6, 0] }}
+              transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 15 }}
               className="relative w-20 h-20 shrink-0"
             >
               <div className="absolute inset-0 rounded-[1.25rem] bg-gradient-to-br from-cyan-500/25 to-purple-500/25 blur-xl" />
@@ -248,8 +272,8 @@ export default function ServiceDetail() {
                   className="group flex items-start gap-3 text-xs text-black/50 dark:text-white/50 p-4 rounded-xl bg-black/[0.03] dark:bg-white/[0.03] ring-1 ring-black/[0.04] dark:ring-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:ring-cyan-500/20 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                 >
                   <motion.span
-                    whileHover={{ scale: 1.3, rotate: [0, -10, 10, 0] }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                    whileHover={shouldReduceMotion ? undefined : { scale: 1.3, rotate: [0, -10, 10, 0] }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 10 }}
                     className="w-5 h-5 rounded-full bg-cyan-500/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-cyan-500/20 transition-colors duration-300"
                   >
                     <CheckCircle className="w-3 h-3 text-cyan-500" />
@@ -271,8 +295,8 @@ export default function ServiceDetail() {
                   Select Project Type
                 </h2>
                 <motion.span
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 >
                   <Sparkles className="w-3 h-3 text-cyan-500/50" />
                 </motion.span>
@@ -288,8 +312,8 @@ export default function ServiceDetail() {
                       viewport={{ once: true }}
                       transition={{ type: 'spring', stiffness: 100, damping: 20, delay: i * 0.06 }}
                       onClick={() => setSelectedPricing(opt)}
-                      whileHover={{ y: -4, scale: 1.01 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                       className={`relative text-left w-full rounded-[1.5rem] p-6 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
                         isSelected
                           ? 'bg-gradient-to-br from-cyan-500/15 to-purple-500/15 ring-2 ring-cyan-500/40 shadow-lg shadow-cyan-500/5'
@@ -299,8 +323,8 @@ export default function ServiceDetail() {
                       {isSelected && (
                         <motion.span
                           initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                          animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+                          transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 15 }}
                           className="absolute top-4 right-4 w-6 h-6 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center shadow-lg"
                         >
                           <CheckCircle className="w-3 h-3 text-white" />
@@ -378,7 +402,7 @@ export default function ServiceDetail() {
               <MagneticButton onClick={handlePayment} disabled={paying}>
                 {paying ? (
                   <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
-                    <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-white border-t-transparent" />
+                    <motion.span animate={shouldReduceMotion ? undefined : { rotate: 360 }} transition={shouldReduceMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-white border-t-transparent" />
                     Processing...
                   </motion.span>
                 ) : (
@@ -404,14 +428,14 @@ export default function ServiceDetail() {
             <div className="mb-20">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 100, damping: 20 }}
                 className="inline-flex items-start gap-4 px-6 py-5 rounded-[1.5rem] bg-emerald-500/[0.07] ring-1 ring-emerald-500/20"
               >
                 <motion.span
                   initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.15 }}
+                  animate={shouldReduceMotion ? { scale: 1 } : { scale: 1 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 15, delay: 0.15 }}
                   className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0"
                 >
                   <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -467,7 +491,10 @@ export default function ServiceDetail() {
                   />
                 </div>
                 {contactStatus === 'sent' ? (
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                    transition={shouldReduceMotion ? { duration: 0 } : undefined}
                     className="w-full py-3.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-500 text-center"
                   >
                     Message sent! I'll get back to you soon.

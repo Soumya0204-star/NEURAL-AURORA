@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useSpring , MotionConfig } from 'framer-motion'
 import { AuthProvider } from './context/AuthContext'
 import { AutoTraverseProvider } from './context/AutoTraverseContext'
 import { MoodProvider } from './context/MoodContext'
@@ -250,6 +250,7 @@ function AppContent() {
 
 export default function App() {
   return (
+    <MotionConfig reducedMotion="user">
     <AuthProvider>
       <AutoTraverseProvider>
         <MoodProvider>
@@ -257,5 +258,6 @@ export default function App() {
         </MoodProvider>
       </AutoTraverseProvider>
     </AuthProvider>
+    </MotionConfig>
   )
 }
