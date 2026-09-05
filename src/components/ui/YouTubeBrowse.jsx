@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 const YT_BASE = 'https://www.googleapis.com/youtube/v3'
 
@@ -55,16 +55,16 @@ function VideoSkeleton({ tall }) {
             background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent)',
             transform: 'translateX(-100%)',
           }}
-          animate={{ transform: ['translateX(-100%)', 'translateX(200%)'] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+          animate={shouldReduceMotion ? undefined : { transform: ['translateX(-100%)', 'translateX(200%)'] }}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: 'linear' }}
         />
       </div>
       {!tall && (
         <div className="p-3 sm:p-4 space-y-2.5">
           <div className="h-3 bg-white/[0.05] rounded-full w-3/4 overflow-hidden relative">
             <motion.div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)', transform: 'translateX(-100%)' }}
-              animate={{ transform: ['translateX(-100%)', 'translateX(200%)'] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+              animate={shouldReduceMotion ? undefined : { transform: ['translateX(-100%)', 'translateX(200%)'] }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: 'linear' }}
             />
           </div>
           <div className="h-2 bg-white/[0.03] rounded-full w-1/2" />
@@ -144,8 +144,8 @@ function PlaylistCard({ playlist, onSelect }) {
               {loadingItems ? (
                 <div className="flex items-center justify-center py-4">
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }}
                     className="w-4 h-4 rounded-full border border-white/10 border-t-white/30"
                   />
                 </div>
@@ -198,6 +198,7 @@ const videoCardVariants = {
 }
 
 export default function YouTubeBrowse({ channelId, onComplete, onBack }) {
+  const shouldReduceMotion = useReducedMotion()
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY
   const [tab, setTab] = useState('videos')
   const [videos, setVideos] = useState([])
@@ -437,8 +438,8 @@ export default function YouTubeBrowse({ channelId, onComplete, onBack }) {
           </motion.div>
           <div className="ml-auto w-16 h-2 rounded-full bg-white/[0.03] overflow-hidden relative">
             <motion.div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)', transform: 'translateX(-100%)' }}
-              animate={{ transform: ['translateX(-100%)', 'translateX(200%)'] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+              animate={shouldReduceMotion ? undefined : { transform: ['translateX(-100%)', 'translateX(200%)'] }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: 'linear' }}
             />
           </div>
         </div>
@@ -628,8 +629,8 @@ export default function YouTubeBrowse({ channelId, onComplete, onBack }) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 gap-2 sm:gap-0">
                 <div className="flex items-center gap-2">
                   <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
+                    animate={shouldReduceMotion ? undefined : { scale: [1, 1.2, 1] }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                     className="w-1.5 h-1.5 rounded-full bg-emerald-400/60 shrink-0"
                   />
                   <p className="text-[10px] font-mono text-white/20 tracking-wider">Watching to verify</p>
@@ -811,7 +812,7 @@ export default function YouTubeBrowse({ channelId, onComplete, onBack }) {
                       >
                         {loadingMore ? (
                           <span className="flex items-center gap-2">
-                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-3 h-3 rounded-full border border-white/10 border-t-white/30" />
+                            <motion.div animate={shouldReduceMotion ? undefined : { rotate: 360 }} transition={shouldReduceMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }} className="w-3 h-3 rounded-full border border-white/10 border-t-white/30" />
                             Loading
                           </span>
                         ) : (
@@ -922,7 +923,7 @@ export default function YouTubeBrowse({ channelId, onComplete, onBack }) {
                       >
                         {loadingMore ? (
                           <span className="flex items-center gap-2">
-                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-3 h-3 rounded-full border border-white/10 border-t-white/30" />
+                            <motion.div animate={shouldReduceMotion ? undefined : { rotate: 360 }} transition={shouldReduceMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }} className="w-3 h-3 rounded-full border border-white/10 border-t-white/30" />
                             Loading
                           </span>
                         ) : (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, MotionConfig } from 'framer-motion'
 import { generateQuestion } from '../lib/gemini'
 import { useAutoTraverse } from '../context/AutoTraverseContext'
 import { useMood } from '../context/MoodContext'
@@ -22,6 +22,7 @@ const TERMINAL_LINES = [
 
 function Particles() {
   const ref = useRef(null)
+  const shouldReduceMotion = useReducedMotion()
   useEffect(() => {
     const c = ref.current
     if (!c) return
@@ -35,6 +36,7 @@ function Particles() {
     function resize() { w = c.width = innerWidth; h = c.height = innerHeight }
     resize(); addEventListener('resize', resize)
     function draw() {
+      if (shouldReduceMotion) return
       ctx.clearRect(0, 0, w, h)
       pts.forEach(p => {
         p.x += p.vx; p.y += p.vy
@@ -56,11 +58,12 @@ function Particles() {
     }
     draw()
     return () => { cancelAnimationFrame(id); removeEventListener('resize', resize) }
-  }, [])
+  }, [shouldReduceMotion])
   return <canvas ref={ref} className="absolute inset-0 pointer-events-none" />
 }
 
 function TerminalBoot({ onDone }) {
+  const shouldReduceMotion = useReducedMotion()
   const [lines, setLines] = useState([])
   const [typing, setTyping] = useState('')
   const [cursor, setCursor] = useState(true)
@@ -112,14 +115,14 @@ function TerminalBoot({ onDone }) {
           {currentLine < TERMINAL_LINES.length && (
             <div className="flex">
               <span className="text-neural-blue/30 mr-2">&gt;</span>
-              <span>{typing}{cursor && <span className="text-neural-blue animate-pulse">_</span>}</span>
+              <span>{typing}{cursor && <span className="text-neural-blue">_</span>}</span>
             </div>
           )}
           {currentLine >= TERMINAL_LINES.length && (
             <div className="flex items-center gap-2 pt-1">
               <span className="text-neural-blue/30 mr-2">&gt;</span>
               <span className="text-emerald-400">System ready.</span>
-              <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-emerald-400">_</motion.span>
+              <motion.span animate={shouldReduceMotion ? undefined : { opacity: [1, 0] }} transition={shouldReduceMotion ? undefined : { duration: 0.5, repeat: Infinity }} className="text-emerald-400">_</motion.span>
             </div>
           )}
         </div>
@@ -129,6 +132,7 @@ function TerminalBoot({ onDone }) {
 }
 
 function VoiceChallenge({ onSuccess, name }) {
+  const shouldReduceMotion = useReducedMotion()
   const [listening, setListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [confidence, setConfidence] = useState(0)
@@ -220,7 +224,7 @@ function VoiceChallenge({ onSuccess, name }) {
           onClick={listening ? stopListening : startListening}
           className={`relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 ${listening ? 'bg-neural-blue/20 border-2 border-neural-blue' : 'bg-white/5 border-2 border-white/20 hover:border-neural-blue/50'}`}
         >
-          <motion.div animate={listening ? { scale: [1, 1.08, 1] } : { scale: 1 }} transition={{ duration: 1.5, repeat: listening ? Infinity : 0, ease: 'easeInOut' }}>
+          <motion.div animate={shouldReduceMotion ? undefined : (listening ? { scale: [1, 1.08, 1] } : { scale: 1 })} transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: listening ? Infinity : 0, ease: 'easeInOut' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={`w-10 h-10 ${listening ? 'text-neural-blue' : 'text-white/50'}`}>
               <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M19 10v2a7 7 0 01-14 0v-2" strokeLinecap="round" strokeLinejoin="round" />
@@ -234,7 +238,7 @@ function VoiceChallenge({ onSuccess, name }) {
         </button>
         {listening && (
           <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-neural-blue/20 border border-neural-blue/50 flex items-center justify-center">
-            <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full bg-neural-blue" />
+            <motion.div animate={shouldReduceMotion ? undefined : { opacity: [1, 0.3, 1] }} transition={shouldReduceMotion ? undefined : { duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 rounded-full bg-neural-blue" />
           </div>
         )}
       </div>
@@ -254,6 +258,7 @@ function VoiceChallenge({ onSuccess, name }) {
 }
 
 function MCQChallenge({ question, onCorrect, onWrong }) {
+  const shouldReduceMotion = useReducedMotion()
   const [selected, setSelected] = useState(null)
   const [result, setResult] = useState(null)
 
@@ -281,8 +286,8 @@ function MCQChallenge({ question, onCorrect, onWrong }) {
     <div className="relative z-10 w-full max-w-md mx-auto px-4">
       <p className="text-xs font-mono text-white/30 uppercase tracking-[0.2em] text-center mb-6">Logic Verification</p>
       <motion.div
-        initial={{ opacity: 0, x: 40 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, x: 40 }}
+        animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
         className="rounded-xl border border-white/10 backdrop-blur-xl bg-black/40 p-6"
       >
         <h3 className="text-base md:text-lg font-display font-bold text-white mb-5">{question.q}</h3>
@@ -291,9 +296,9 @@ function MCQChallenge({ question, onCorrect, onWrong }) {
             <motion.button
               key={i}
               onClick={() => handleSelect(i)}
-              whileHover={result ? {} : { scale: 1.02 }}
-              whileTap={result ? {} : { scale: 0.98 }}
-              animate={result === 'wrong' && selected === i ? { x: [0, -8, 8, -8, 8, 0] } : {}}
+              whileHover={shouldReduceMotion || result ? {} : { scale: 1.02 }}
+              whileTap={shouldReduceMotion || result ? {} : { scale: 0.98 }}
+              animate={!shouldReduceMotion && result === 'wrong' && selected === i ? { x: [0, -8, 8, -8, 8, 0] } : {}}
               transition={{ duration: 0.3 }}
               className={`w-full text-left px-4 py-3 rounded-lg border transition-all duration-300 font-mono text-sm ${
                 result === 'correct' && i === question.ans ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' :
@@ -313,6 +318,7 @@ function MCQChallenge({ question, onCorrect, onWrong }) {
 }
 
 function SuccessScreen({ name }) {
+  const shouldReduceMotion = useReducedMotion()
   const [showAccess, setShowAccess] = useState(false)
   const [showText, setShowText] = useState(false)
   useEffect(() => {
@@ -324,9 +330,9 @@ function SuccessScreen({ name }) {
   return (
     <div className="relative z-10 flex flex-col items-center justify-center gap-4 px-4">
       <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', stiffness: 120, damping: 14, delay: 0.1 }}
+        initial={shouldReduceMotion ? false : { scale: 0, rotate: -180 }}
+        animate={shouldReduceMotion ? undefined : { scale: 1, rotate: 0 }}
+        transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 120, damping: 14, delay: 0.1 }}
       >
         <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-emerald-400">
@@ -338,8 +344,8 @@ function SuccessScreen({ name }) {
       <AnimatePresence>
           {showAccess && (
           <motion.h1
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20, scale: 0.95 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
             className="text-5xl md:text-7xl font-display font-bold tracking-tighter text-center"
             style={{
               background: 'linear-gradient(135deg, #00f0ff, #b829dd, #f0c040)',
@@ -351,12 +357,12 @@ function SuccessScreen({ name }) {
       </AnimatePresence>
       <AnimatePresence>
         {showText && (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}
+          <motion.p initial={shouldReduceMotion ? false : { opacity: 0 }} animate={shouldReduceMotion ? undefined : { opacity: 1 }} transition={shouldReduceMotion ? undefined : { duration: 0.6 }}
             className="text-base text-white/40 font-mono tracking-wider"
           >Welcome to {name}&apos;s world.</motion.p>
         )}
       </AnimatePresence>
-      {Array.from({ length: 16 }).map((_, i) => (
+      {!shouldReduceMotion && Array.from({ length: 16 }).map((_, i) => (
         <motion.div key={i} className="absolute pointer-events-none"
           style={{ left: `${5 + Math.random() * 90}%`, bottom: '-5%' }}
           initial={{ y: 0, opacity: 0.7, scale: 0 }}
@@ -374,6 +380,7 @@ function SuccessScreen({ name }) {
 }
 
 function ImpressScreen({ onDone, title, skillsCount, projectsCount, servicesCount }) {
+  const shouldReduceMotion = useReducedMotion()
   const onDoneRef = useRef(onDone)
   onDoneRef.current = onDone
   const items = [
@@ -398,9 +405,9 @@ function ImpressScreen({ onDone, title, skillsCount, projectsCount, servicesCoun
   return (
     <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 100, damping: 12 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.5 }}
+        animate={shouldReduceMotion ? undefined : { opacity: 1, scale: 1 }}
+        transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 100, damping: 12 }}
         className="text-center"
       >
         <motion.h1
@@ -412,25 +419,25 @@ function ImpressScreen({ onDone, title, skillsCount, projectsCount, servicesCoun
           }}
         >Neural Aurora</motion.h1>
         <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
+          initial={shouldReduceMotion ? false : { opacity: 0 }}
+          animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.3, duration: 0.6 }}
           className="text-sm text-white/40 font-mono mt-2 tracking-wider"
         >A living neural network suspended in an aurora field</motion.p>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.5, duration: 0.6 }}
         className="flex flex-col gap-3 w-full max-w-sm"
       >
         {items.map((item, i) => (
           <motion.div
             key={item.label}
-            initial={{ opacity: 0, x: -30, filter: 'blur(8px)' }}
-            animate={visible > i ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
-            transition={{ type: 'spring', stiffness: 120, damping: 14 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, x: -30, filter: 'blur(8px)' }}
+            animate={shouldReduceMotion ? undefined : (visible > i ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {})}
+            transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 120, damping: 14 }}
             className="flex items-center gap-3 px-4 py-3 rounded-xl"
             style={{
               background: 'rgba(255,255,255,0.03)',
@@ -441,9 +448,9 @@ function ImpressScreen({ onDone, title, skillsCount, projectsCount, servicesCoun
             <span className="text-sm text-white/80 font-medium">{item.label}</span>
             {visible > i && (
               <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+                initial={shouldReduceMotion ? false : { scale: 0 }}
+                animate={shouldReduceMotion ? undefined : { scale: 1 }}
+                transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 200, damping: 10 }}
                 className="ml-auto text-emerald-400"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
@@ -457,8 +464,8 @@ function ImpressScreen({ onDone, title, skillsCount, projectsCount, servicesCoun
 
       {done && (
         <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
           className="text-xs text-white/30 font-mono tracking-wider"
         >Entering the neural network...</motion.p>
       )}
@@ -467,6 +474,7 @@ function ImpressScreen({ onDone, title, skillsCount, projectsCount, servicesCoun
 }
 
 function Confetti() {
+  const shouldReduceMotion = useReducedMotion()
   const ref = useRef(null)
   useEffect(() => {
     const c = ref.current
@@ -483,6 +491,7 @@ function Confetti() {
     function resize() { w = c.width = innerWidth; h = c.height = innerHeight }
     resize(); addEventListener('resize', resize)
     function draw() {
+      if (shouldReduceMotion) return
       ctx.clearRect(0, 0, w, h)
       pieces.forEach(p => {
         p.x += p.vx; p.y += p.vy; p.rot += p.rs; p.vy += 0.03
@@ -496,7 +505,7 @@ function Confetti() {
     }
     draw()
     return () => { cancelAnimationFrame(id); removeEventListener('resize', resize) }
-  }, [])
+  }, [shouldReduceMotion])
   return <canvas ref={ref} className="absolute inset-0 pointer-events-none" style={{ zIndex: 5 }} />
 }
 
@@ -581,6 +590,7 @@ function playKeystroke() {
 }
 
 function MatrixRain() {
+  const shouldReduceMotion = useReducedMotion()
   const ref = useRef(null)
   useEffect(() => {
     const canvas = ref.current; if (!canvas) return
@@ -594,6 +604,7 @@ function MatrixRain() {
     }
     init()
     const draw = () => {
+      if (shouldReduceMotion) return
       ctx.fillStyle = 'rgba(0,0,0,0.04)'; ctx.fillRect(0, 0, canvas.width, canvas.height)
       ctx.fillStyle = 'rgba(0,240,255,0.06)'; ctx.font = `${fontSize}px monospace`
       for (let i = 0; i < drops.length; i++) {
@@ -608,7 +619,7 @@ function MatrixRain() {
     const onResize = () => init()
     window.addEventListener('resize', onResize)
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', onResize) }
-  }, [])
+  }, [shouldReduceMotion])
   return <canvas ref={ref} className="absolute inset-0 pointer-events-none" />
 }
 
@@ -668,20 +679,21 @@ function HighlightedText({ text }) {
 }
 
 function AnimatedBar({ name, level }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div>
       <div className="flex justify-between text-[11px] mb-1 font-mono">
         <span className="text-white/80">{name}</span>
         <motion.span
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+          initial={shouldReduceMotion ? false : { opacity: 0 }} animate={shouldReduceMotion ? undefined : { opacity: 1 }} transition={shouldReduceMotion ? undefined : { delay: 0.3 }}
           className="text-emerald-400 font-bold"
         >{level}%</motion.span>
       </div>
       <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
         <motion.div
-          initial={{ width: 0 }}
+          initial={shouldReduceMotion ? false : { width: 0 }}
           animate={{ width: `${level}%` }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.8, ease: 'easeOut', delay: 0.1 }}
           className="h-full rounded-full relative"
           style={{
             background: 'linear-gradient(90deg, #00f0ff, #10b981)',
@@ -694,11 +706,12 @@ function AnimatedBar({ name, level }) {
 }
 
 function SkillsContent({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   const cats = [...new Set(items.map(s => s.category))]
   return (
     <div className="space-y-4 py-1">
       {cats.map((cat, ci) => (
-        <motion.div key={cat} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ci * 0.1 }}>
+        <motion.div key={cat} initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }} transition={shouldReduceMotion ? undefined : { delay: ci * 0.1 }}>
           <div className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-mono mb-2">{cat}</div>
           <div className="space-y-2">
             {items.filter(s => s.category === cat).map(s => (
@@ -712,10 +725,11 @@ function SkillsContent({ items }) {
 }
 
 function ProjectCards({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="space-y-3 py-1">
       {items.map((p, i) => (
-        <motion.div key={p.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
+        <motion.div key={p.id} initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }} animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }} transition={shouldReduceMotion ? undefined : { delay: i * 0.08 }}
           className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3 hover:border-white/10 transition-colors"
         >
           <div className="text-white font-bold text-xs mb-1" style={{ textShadow: '0 0 8px rgba(0,240,255,0.15)' }}>{p.title}</div>
@@ -737,10 +751,11 @@ function ProjectCards({ items }) {
 }
 
 function EducationCards({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="space-y-3 py-1">
       {items.map((e, i) => (
-        <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+        <motion.div key={e.id} initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }} animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }} transition={shouldReduceMotion ? undefined : { delay: i * 0.1 }}
           className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3"
         >
           <div className="text-white font-bold text-xs">{e.degree}</div>
@@ -754,10 +769,11 @@ function EducationCards({ items }) {
 }
 
 function ExperienceCards({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="space-y-3 py-1">
       {items.map((e, i) => (
-        <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+        <motion.div key={e.id} initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }} animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }} transition={shouldReduceMotion ? undefined : { delay: i * 0.1 }}
           className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3"
         >
           <div className="text-white font-bold text-xs">{e.role}</div>
@@ -771,10 +787,11 @@ function ExperienceCards({ items }) {
 }
 
 function ServicesCards({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="space-y-3 py-1">
       {items.map((s, i) => (
-        <motion.div key={s.service_id || s.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
+        <motion.div key={s.service_id || s.id} initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }} animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }} transition={shouldReduceMotion ? undefined : { delay: i * 0.08 }}
           className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3"
         >
           <div className="text-white font-bold text-xs mb-1">{s.title}</div>
@@ -792,10 +809,11 @@ function ServicesCards({ items }) {
 }
 
 function CaseStudyCards({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="space-y-3 py-1">
       {items.map((c, i) => (
-        <motion.div key={c.id || c.cs_id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+        <motion.div key={c.id || c.cs_id} initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }} animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }} transition={shouldReduceMotion ? undefined : { delay: i * 0.1 }}
           className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3"
         >
           <div className="text-white font-bold text-xs mb-1">{c.title}</div>
@@ -813,10 +831,11 @@ function CaseStudyCards({ items }) {
 }
 
 function BlogCards({ items }) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="space-y-3 py-1">
       {items.map((b, i) => (
-        <motion.div key={b.id || b.post_id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+        <motion.div key={b.id || b.post_id} initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }} animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }} transition={shouldReduceMotion ? undefined : { delay: i * 0.1 }}
           className="border border-white/[0.04] rounded-lg bg-white/[0.01] p-3"
         >
           <div className="text-white font-bold text-xs mb-1">{b.title}</div>
@@ -889,6 +908,7 @@ RULES:
 }
 
 function CmdExplorer({ onBack }) {
+  const shouldReduceMotion = useReducedMotion()
   const [history, setHistory] = useState([{ id: genId(), type: 'welcome' }])
   const [input, setInput] = useState('')
   const [cmdIndex, setCmdIndex] = useState(-1)
@@ -943,7 +963,7 @@ function CmdExplorer({ onBack }) {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
     }
   }, [history, typingText])
 
@@ -1234,7 +1254,7 @@ function CmdExplorer({ onBack }) {
                     <span className="text-neural-blue/60 text-xs font-mono shrink-0"
                       style={{ textShadow: '0 0 6px rgba(0,240,255,0.25)' }}
                     >$</span>
-                    <span className="inline-block w-1.5 h-3.5 bg-neural-blue/50 animate-pulse mr-0.5" />
+                    <span className={`inline-block w-1.5 h-3.5 bg-neural-blue/50 ${shouldReduceMotion ? "" : "animate-pulse"} mr-0.5`} />
                     <span className="text-white font-bold text-[12px] tracking-wide">{entry.content}</span>
                   </div>
                 )
@@ -1245,7 +1265,7 @@ function CmdExplorer({ onBack }) {
                   <div key={entry.id} className="ml-1 pl-2 border-l border-white/[0.03]">
                     <HighlightedText text={display} />
                     {entry.id === typingId && typingText.length < typingFull.current.length && (
-                      <span className="inline-block w-1.5 h-3 bg-emerald-400/60 ml-0.5 animate-pulse" />
+                      <span className={`inline-block w-1.5 h-3 bg-emerald-400/60 ml-0.5 ${shouldReduceMotion ? "" : "animate-pulse"}`} />
                     )}
                   </div>
                 )
@@ -1253,7 +1273,7 @@ function CmdExplorer({ onBack }) {
               if (entry.type === 'loading') {
                 return (
                   <div key={entry.id} className="ml-1 pl-2 border-l border-white/[0.03] flex items-center gap-2 py-2">
-                    <svg className="h-3 w-3 animate-spin text-neural-blue" fill="none" viewBox="0 0 24 24">
+                    <svg className={`h-3 w-3 ${shouldReduceMotion ? "" : "animate-spin"} text-neural-blue`} fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
@@ -1281,7 +1301,7 @@ function CmdExplorer({ onBack }) {
           <span className="text-neural-blue/60 text-xs font-mono shrink-0"
             style={{ textShadow: '0 0 6px rgba(0,240,255,0.2)' }}
           >$</span>
-          <span className="inline-block w-1.5 h-3.5 bg-neural-blue/50 animate-pulse mr-0.5" />
+          <span className={`inline-block w-1.5 h-3.5 bg-neural-blue/50 ${shouldReduceMotion ? "" : "animate-pulse"} mr-0.5`} />
           <input
             ref={inputRef}
             type="text"
@@ -1302,6 +1322,7 @@ function CmdExplorer({ onBack }) {
 }
 
 function InterviewMe({ onSuccess, name }) {
+  const shouldReduceMotion = useReducedMotion()
   const [step, setStep] = useState('intro')
   const [visitorQuestion, setVisitorQuestion] = useState('')
   const [aiResponse, setAiResponse] = useState('')
@@ -1816,42 +1837,42 @@ RULES:
 
             <AnimatePresence mode="wait">
               {step === 'intro' && (
-                <motion.div key="intro" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                <motion.div key="intro" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={shouldReduceMotion ? undefined : { opacity: 1 }}
                   className="flex items-center justify-center py-8 sm:py-10"
                 >
                   <motion.div
-                    animate={{ scale: [1, 1.03, 1], opacity: [0.4, 0.8, 0.4] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={shouldReduceMotion ? undefined : { scale: [1, 1.03, 1], opacity: [0.4, 0.8, 0.4] }}
+                    transition={shouldReduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                     className="flex flex-col items-center gap-3"
                   >
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-neural-blue/30 border-t-neural-blue animate-spin" />
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-neural-blue/30 border-t-neural-blue ${shouldReduceMotion ? '' : 'animate-spin'}`} />
                     <span className="font-mono text-white/30 tracking-widest uppercase" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>Getting ready...</span>
                   </motion.div>
                 </motion.div>
               )}
 
               {thinking && (
-                <motion.div key="thinking" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                <motion.div key="thinking" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={shouldReduceMotion ? undefined : { opacity: 1 }}
                   className="flex items-center gap-3 py-4 sm:py-6"
                 >
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-neural-blue/30 border-t-neural-blue animate-spin" />
+                  <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-neural-blue/30 border-t-neural-blue ${shouldReduceMotion ? '' : 'animate-spin'}`} />
                   <span className="font-mono text-white/30 tracking-wide" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>{name} is thinking...</span>
                 </motion.div>
               )}
 
               {step === 'listening' && !thinking && (
                 <motion.div key="listening"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                  initial={shouldReduceMotion ? false : { opacity: 0 }}
+                  animate={shouldReduceMotion ? undefined : { opacity: 1 }}
+                  exit={shouldReduceMotion ? undefined : { opacity: 0 }}
+                  transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 100, damping: 20 }}
                   className="space-y-4 sm:space-y-6"
                 >
                   {history.length > 0 && (
                     <div className="space-y-2 sm:space-y-3 max-h-[160px] sm:max-h-[180px] overflow-y-auto pr-1"
                       style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(0,240,255,0.15) transparent' }}>
                       {history.map((h, i) => (
-                        <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                        <motion.div key={i} initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }} animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                           className={`leading-relaxed font-mono rounded-xl p-2.5 sm:p-3 ${
                             h.role === 'visitor'
                               ? 'bg-white/[0.02] border border-white/[0.04] ml-4 sm:ml-6'
@@ -1873,9 +1894,9 @@ RULES:
                     <motion.button
                       onClick={listening ? stopListening : startListening}
                       disabled={!mountedRef.current}
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      whileHover={shouldReduceMotion ? {} : { scale: 1.04 }}
+                      whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+                      transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 300, damping: 20 }}
                       className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-colors duration-500 ${
                         listening
                           ? 'border-2 border-neural-blue/60'
@@ -1887,8 +1908,8 @@ RULES:
                       }}
                     >
                       <motion.div
-                        animate={listening ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-                        transition={{ duration: 1.5, repeat: listening ? Infinity : 0, ease: 'easeInOut' }}
+                        animate={shouldReduceMotion ? undefined : (listening ? { scale: [1, 1.08, 1] } : { scale: 1 })}
+                        transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: listening ? Infinity : 0, ease: 'easeInOut' }}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke={listening ? '#00f0ff' : 'rgba(255,255,255,0.3)'} strokeWidth="1.5" className="w-7 h-7 sm:w-8 sm:h-8">
                           <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" strokeLinecap="round" />
@@ -1899,8 +1920,8 @@ RULES:
                       </motion.div>
                       {listening && (
                         <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
+                          initial={shouldReduceMotion ? false : { scale: 0.8, opacity: 0 }}
+                          animate={shouldReduceMotion ? undefined : { scale: 1, opacity: 1 }}
                           className="absolute inset-0 rounded-full border-2 border-neural-blue/20"
                           style={{ boxShadow: '0 0 16px rgba(0,240,255,0.08), 0 0 40px rgba(0,240,255,0.04)' }}
                         />
@@ -1912,8 +1933,8 @@ RULES:
                   </div>
                   {transcript && (
                     <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                      animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                       className="font-mono text-neural-blue/60 bg-white/[0.02] rounded-xl p-2.5 sm:p-3 border border-white/[0.04] break-words"
                       style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}
                     >
@@ -1921,7 +1942,7 @@ RULES:
                     </motion.div>
                   )}
                   {showTextFallback && (
-                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2">
+                    <motion.div initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }} animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }} className="flex gap-2">
                       <input
                         value={textInput}
                         onChange={e => setTextInput(e.target.value)}
@@ -1934,8 +1955,8 @@ RULES:
                       <motion.button
                         onClick={submitText}
                         disabled={!textInput.trim()}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
+                        whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
+                        whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
                         className="px-3 sm:px-4 rounded-xl font-mono text-neural-blue/70 hover:text-neural-blue transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         style={{ background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.2)', fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}
                       >
@@ -1948,10 +1969,10 @@ RULES:
 
               {step === 'answering' && !thinking && (
                 <motion.div key="answering"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+                  exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+                  transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 100, damping: 20 }}
                   className="space-y-4 sm:space-y-5"
                 >
                   <div className="space-y-1.5 sm:space-y-2">
@@ -1975,9 +1996,9 @@ RULES:
                   <div className="flex gap-2">
                     <motion.button
                       onClick={handleNext}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
+                      whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                      transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 300, damping: 20 }}
                       className="group relative flex-1 overflow-hidden rounded-xl border border-white/[0.06] px-4 sm:px-5 py-2.5 sm:py-3 font-mono tracking-wide text-white/70 transition-colors duration-300 hover:border-neural-blue/30 hover:text-neural-blue"
                       style={{ background: 'rgba(255,255,255,0.02)', fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}
                     >
@@ -1985,15 +2006,15 @@ RULES:
                       <motion.div
                         className="absolute inset-0 pointer-events-none"
                         style={{ background: 'linear-gradient(90deg, transparent, rgba(0,240,255,0.03), transparent)' }}
-                        animate={{ x: ['-100%', '200%'] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        animate={shouldReduceMotion ? undefined : { x: ['-100%', '200%'] }}
+                        transition={shouldReduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: 'linear' }}
                       />
                     </motion.button>
                     <motion.button
                       onClick={endInterview}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
+                      whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                      transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 300, damping: 20 }}
                       className="relative rounded-xl border border-white/[0.04] px-3 sm:px-4 py-2.5 sm:py-3 font-mono tracking-wide text-white/30 transition-colors duration-300 hover:border-white/[0.08] hover:text-white/50"
                       style={{ background: 'rgba(255,255,255,0.01)', fontSize: 'clamp(0.5625rem, 1.5vw, 0.625rem)' }}
                     >
@@ -2005,16 +2026,16 @@ RULES:
 
               {step === 'complete' && (
                 <motion.div key="complete"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 120, damping: 16 }}
+                  initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96 }}
+                  animate={shouldReduceMotion ? undefined : { opacity: 1, scale: 1 }}
+                  transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 120, damping: 16 }}
                   className="py-4 sm:py-6 space-y-4 sm:space-y-6"
                 >
                   <div className="flex flex-col items-center gap-3 sm:gap-4">
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 150, damping: 12, delay: 0.1 }}
+                      initial={shouldReduceMotion ? false : { scale: 0 }}
+                      animate={shouldReduceMotion ? undefined : { scale: 1 }}
+                      transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 150, damping: 12, delay: 0.1 }}
                       className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center"
                       style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}
                     >
@@ -2035,9 +2056,9 @@ RULES:
                   </div>
                   <motion.button
                     onClick={onSuccess}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
+                    whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                    transition={shouldReduceMotion ? undefined : { type: 'spring', stiffness: 300, damping: 20 }}
                     className="group relative w-full overflow-hidden rounded-xl border px-4 sm:px-5 py-2.5 sm:py-3 font-mono tracking-wide transition-colors duration-300"
                     style={{ borderColor: 'rgba(16,185,129,0.2)', background: 'rgba(16,185,129,0.04)', color: 'rgba(16,185,129,0.8)', fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}
                   >
@@ -2045,8 +2066,8 @@ RULES:
                     <motion.div
                       className="absolute inset-0 pointer-events-none"
                       style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.04), transparent)' }}
-                      animate={{ x: ['-100%', '200%'] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                      animate={shouldReduceMotion ? undefined : { x: ['-100%', '200%'] }}
+                      transition={shouldReduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: 'linear' }}
                     />
                   </motion.button>
                 </motion.div>
@@ -2060,6 +2081,7 @@ RULES:
 }
 
 function NeuralPatternLock({ onSuccess }) {
+  const shouldReduceMotion = useReducedMotion()
   const [gridSize] = useState(() => [3, 4, 5][Math.floor(Math.random() * 3)])
   const [phase, setPhase] = useState('generating')
   const [pattern, setPattern] = useState([])
@@ -2178,7 +2200,7 @@ function NeuralPatternLock({ onSuccess }) {
       <div className="relative" style={{ width: containerSize, height: containerSize }}>
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
           {/* Demo path (glowing) */}
-          {phase === 'demonstrating' && activeDemoIdx > 0 && (
+          {!shouldReduceMotion && phase === 'demonstrating' && activeDemoIdx > 0 && (
             <path d={getDemoRemainingPath()} fill="none" stroke="#00f0ff" strokeWidth="1.5"
               strokeLinecap="round" strokeLinejoin="round"
               style={{ filter: 'drop-shadow(0 0 6px rgba(0,240,255,0.5))' }}
@@ -2214,7 +2236,7 @@ function NeuralPatternLock({ onSuccess }) {
           )}
 
           {/* Success path */}
-          {phase === 'success' && userPattern.length >= 2 && (
+          {!shouldReduceMotion && phase === 'success' && userPattern.length >= 2 && (
             <path d={userPattern.map((n, i) => {
               const p = pos(n)
               return `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`
@@ -2242,7 +2264,7 @@ function NeuralPatternLock({ onSuccess }) {
                 style={{ transition: 'opacity 0.2s' }}
               >
                 {/* Glow ring */}
-                {(isLastActive || isSelected || isWrong) && (
+                {!shouldReduceMotion && (isLastActive || isSelected || isWrong) && (
                   <circle cx={p.x} cy={p.y} r={isWrong ? 10 : 8} fill="none"
                     stroke={isWrong ? '#ef4444' : (isSelected ? '#10b981' : '#00f0ff')}
                     strokeWidth="0.5"
@@ -2255,7 +2277,7 @@ function NeuralPatternLock({ onSuccess }) {
                 )}
 
                 {/* Input pulse indicator */}
-                {phase === 'input' && !userPattern.includes(i) && (
+                {!shouldReduceMotion && phase === 'input' && !userPattern.includes(i) && (
                   <circle cx={p.x} cy={p.y} r={7} fill="transparent"
                     stroke="rgba(0,240,255,0.12)" strokeWidth="0.5" strokeDasharray="2 2"
                   >
@@ -2286,8 +2308,8 @@ function NeuralPatternLock({ onSuccess }) {
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
           {[0, 1, 2].map(r => (
             <motion.div key={r}
-              animate={round > r ? { scale: [1, 1.3, 1] } : {}}
-              transition={{ duration: 0.3 }}
+              animate={shouldReduceMotion ? {} : (round > r ? { scale: [1, 1.3, 1] } : {})}
+              transition={shouldReduceMotion ? undefined : { duration: 0.3 }}
               className="w-1.5 h-1.5 rounded-full"
               style={{
                 background: round > r ? '#00f0ff' : 'rgba(255,255,255,0.08)',
@@ -2445,11 +2467,12 @@ export default function StartingLoader({ onComplete }) {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <motion.div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at center, #0a0a12 0%, #050508 100%)' }}
-      animate={phase === 'transitioning' ? { opacity: 0, scale: 1.05 } : { opacity: 1, scale: 1 }}
-      transition={{ duration: 1.2, ease: 'easeInOut' }}
+      animate={shouldReduceMotion ? { opacity: phase === 'transitioning' ? 0 : 1 } : (phase === 'transitioning' ? { opacity: 0, scale: 1.05 } : { opacity: 1, scale: 1 })}
+      transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.2, ease: 'easeInOut' }}
     >
       <Particles />
       {phase === 'success' && <Confetti />}
@@ -2484,8 +2507,8 @@ export default function StartingLoader({ onComplete }) {
               >
                 <div className="w-14 sm:w-20 h-14 sm:h-20 rounded-full relative flex items-center justify-center">
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                    animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+                    transition={shouldReduceMotion ? undefined : { duration: 8, repeat: Infinity, ease: 'linear' }}
                     className="absolute inset-0 rounded-full"
                     style={{
                       background: 'conic-gradient(from 0deg, transparent, #00f0ff, #b829dd, #f0c040, transparent)',
@@ -2848,8 +2871,8 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
                 >
                   <div className="flex flex-col items-center gap-2 text-center">
                     <motion.div
-                      animate={{ x: [0, 3, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      animate={shouldReduceMotion ? undefined : { x: [0, 3, 0] }}
+                      transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                       className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0"
                       style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.15), rgba(184,41,221,0.15))' }}
                     >
@@ -2913,16 +2936,16 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
                   <motion.svg
                     className="w-2.5 h-2.5 text-white/20 hidden md:block"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                    animate={{ x: [0, 3, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={shouldReduceMotion ? undefined : { x: [0, 3, 0] }}
+                    transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                   >
                     <path d="M9 18l6-6-6-6" />
                   </motion.svg>
                   <motion.svg
                     className="w-2.5 h-2.5 text-white/20 md:hidden"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                    animate={{ y: [0, 3, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={shouldReduceMotion ? undefined : { y: [0, 3, 0] }}
+                    transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                   >
                     <path d="M6 9l6 6 6-6" />
                   </motion.svg>
@@ -2933,7 +2956,7 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
         )}
 
         {phase === 'mood-swing' && (
-          <motion.div key="mood-swing" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}>
+          <motion.div key="mood-swing" initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }} animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }} exit={shouldReduceMotion ? undefined : { opacity: 0, y: -30 }}>
             <MoodSwing onSelect={handleMoodSelect} />
           </motion.div>
         )}
@@ -2967,8 +2990,8 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
               >
                 <motion.h2
                   className="text-xl font-display font-bold text-white text-center"
-                  animate={{ scale: [1, 1.03, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                  animate={shouldReduceMotion ? undefined : { scale: [1, 1.03, 1] }}
+                  transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: Infinity }}
                 >
                   Mood Set {'\u2713'}
                 </motion.h2>
@@ -2984,8 +3007,8 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
                 className="flex items-center gap-2"
               >
                 <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+                  transition={shouldReduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: 'linear' }}
                   className="w-4 h-4 rounded-full border-2 border-transparent"
                   style={{
                     borderTopColor: m?.textColor?.replace('text-', '') || '#00f0ff',
@@ -3029,8 +3052,8 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
               <motion.span
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ background: '#fbbf24', boxShadow: '0 0 6px rgba(251,191,36,0.4)' }}
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+                animate={shouldReduceMotion ? undefined : { opacity: [0.3, 1, 0.3] }}
+                transition={shouldReduceMotion ? undefined : { duration: 1.5, repeat: Infinity }}
               />
               <span className="text-[10px] font-mono tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>
                 Ad {currentAd + 1} / {adVideos.length}
@@ -3057,13 +3080,13 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
         )}
 
         {phase === 'pattern-lock' && (
-          <motion.div key="pattern-lock" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
+          <motion.div key="pattern-lock" initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }} animate={shouldReduceMotion ? undefined : { opacity: 1, scale: 1 }} exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.95 }}>
             <NeuralPatternLock onSuccess={handlePatternLockSuccess} />
           </motion.div>
         )}
 
         {phase === 'youtube-browse' && ytChannelId && (
-          <motion.div key="youtube-browse" className="w-full max-w-6xl mx-auto px-2 sm:px-6" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}>
+          <motion.div key="youtube-browse" className="w-full max-w-6xl mx-auto px-2 sm:px-6" initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }} animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }} exit={shouldReduceMotion ? undefined : { opacity: 0, y: -30 }}>
             <YouTubeBrowse channelId={ytChannelId} onComplete={handleYoutubeBrowseSuccess} onBack={() => setPhase('selecting')} />
           </motion.div>
         )}
@@ -3109,5 +3132,6 @@ className="group w-full md:flex-shrink-0 rounded-xl border p-3 sm:p-4"
         <p className="text-[9px] font-mono text-white/10 tracking-[0.3em] uppercase">Neural Aurora</p>
       </div>
     </motion.div>
+    </MotionConfig>
   )
 }
