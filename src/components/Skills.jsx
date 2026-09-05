@@ -24,10 +24,10 @@ function SkillBar({ name, level, color, index, shouldReduceMotion }) {
       </div>
       <div className="h-[2px] bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
           <motion.div
-            initial={shouldReduceMotion ? false : { width: 0 }}
+            initial={shouldReduceMotion ? { width: `${level}%` } : { width: 0 }}
             whileInView={shouldReduceMotion ? undefined : { width: `${level}%` }}
             viewport={{ once: true }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.2 + index * 0.05, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.2 + index * 0.05, duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="h-full rounded-full animate-shimmer"
             style={{ background: `linear-gradient(90deg, ${color}, ${color}88, ${color})` }}
           />

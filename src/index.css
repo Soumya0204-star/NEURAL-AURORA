@@ -313,11 +313,3 @@
     transform: rotateY(180deg);
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-float,
-  .animate-pulse-subtle,
-  .animate-shimmer {
-    animation: none !important;
-  }
-}
