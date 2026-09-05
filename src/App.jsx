@@ -43,7 +43,7 @@ function SectionSeparator() {
 }
 
 function HomePage() {
-  const { isLoading } = usePersonalInfo()
+  const { hasLoaded } = usePersonalInfo()
   const mouse = useRef({ x: 0, y: 0 })
 
   const handleMouseMove = (e) => {
@@ -53,7 +53,7 @@ function HomePage() {
     }
   }
 
-  if (isLoading) {
+  if (!hasLoaded) {
     return <div className="relative min-h-[100dvh] overflow-hidden" />
   }
 

@@ -51,7 +51,7 @@ const subscribers = new Map()
 const resourceRegistry = new Map()
 
 function getCacheEntry(key) {
-  return cacheStore.get(key) || { data: undefined, status: 'idle', error: null, promise: null }
+  return cacheStore.get(key) || { data: undefined, status: 'idle', error: null, promise: null, hasLoaded: false }
 }
 
 function setCacheEntry(key, entry) {
@@ -90,7 +90,7 @@ function ensureFetch(key, fetchFn, staticData, mergeFn, { force = false } = {}) 
     return Promise.resolve(existing.data)
   }
   if (!supabaseConfigured) {
-    setCacheEntry(key, { data: staticData, status: 'success', error: null, promise: null })
+    setCacheEntry(key, { data: staticData, status: 'success', error: null, promise: null, hasLoaded: true })
     return Promise.resolve(staticData)
   }
 
@@ -98,15 +98,15 @@ function ensureFetch(key, fetchFn, staticData, mergeFn, { force = false } = {}) 
   const promise = fetchFn()
     .then((raw) => {
       const finalData = hasUsableData(raw) ? (mergeFn ? mergeFn(raw, staticData) : raw) : fallbackData
-      setCacheEntry(key, { data: finalData, status: 'success', error: null, promise: null })
+      setCacheEntry(key, { data: finalData, status: 'success', error: null, promise: null, hasLoaded: true })
       return finalData
     })
     .catch((error) => {
-      setCacheEntry(key, { data: fallbackData, status: 'error', error, promise: null })
+      setCacheEntry(key, { data: fallbackData, status: 'error', error, promise: null, hasLoaded: true })
       return fallbackData
     })
 
-  setCacheEntry(key, { data: fallbackData, status: 'loading', error: null, promise })
+  setCacheEntry(key, { data: fallbackData, status: 'loading', error: null, promise, hasLoaded: existing?.hasLoaded || false })
   return promise
 }
 
@@ -142,7 +142,7 @@ export function invalidatePortfolioCache(key) {
  */
 function usePortfolioResource(key, fetchFn, staticData, mergeFn) {
   if (!cacheStore.has(key)) {
-    cacheStore.set(key, { data: staticData, status: 'idle', error: null, promise: null })
+    cacheStore.set(key, { data: staticData, status: 'idle', error: null, promise: null, hasLoaded: false })
   }
   if (!resourceRegistry.has(key)) {
     resourceRegistry.set(key, { fetchFn, staticData, mergeFn })
@@ -164,6 +164,7 @@ function usePortfolioResource(key, fetchFn, staticData, mergeFn) {
   return {
     data: entry.data,
     isLoading: entry.status === 'loading' || entry.status === 'idle',
+    hasLoaded: Boolean(entry.hasLoaded),
     error: entry.error,
   }
 }
