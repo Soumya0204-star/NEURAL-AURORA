@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import { BrandLogo } from '../ui/BrandLogo'
 
 function LoadingState() {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <div className="flex min-h-[100dvh] items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
       <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }}
         className="h-8 w-8 rounded-full border-2 border-t-transparent"
         style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--accent)' }}
       />
@@ -18,6 +20,8 @@ function LoadingState() {
 }
 
 function InputField({ label, type, value, onChange, placeholder, autoComplete }) {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -25,8 +29,8 @@ function InputField({ label, type, value, onChange, placeholder, autoComplete })
       </label>
       <motion.div
         initial={false}
-        whileFocus={{ scale: 1.005 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        whileFocus={shouldReduceMotion ? undefined : { scale: 1.005 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 25 }}
       >
         <input
           type={type}
@@ -55,6 +59,7 @@ export default function Login() {
   const { signIn, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const shouldReduceMotion = useReducedMotion()
 
   const from = location.state?.from?.pathname || '/admin'
 
@@ -97,9 +102,9 @@ export default function Login() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[var(--accent-glow)]/8 via-[var(--bg-primary)] to-[var(--bg-primary)]" />
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 w-full max-w-md px-4 sm:px-6"
       >
         <div
@@ -114,9 +119,9 @@ export default function Login() {
         >
           <div className="mb-8 flex flex-col items-center text-center">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 120, damping: 14 }}
+              initial={shouldReduceMotion ? { opacity: 1 } : { scale: 0.9, opacity: 0 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+              transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.1, type: 'spring', stiffness: 120, damping: 14 }}
               className="mb-5"
             >
               <BrandLogo size="large" showWordmark />
@@ -150,9 +155,10 @@ export default function Login() {
 
             {error && (
               <motion.p
-                initial={{ opacity: 0, y: -8, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: -8, height: 0 }}
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8, height: 0 }}
+                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, height: 'auto' }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, height: 0 }}
+                transition={shouldReduceMotion ? { duration: 0 } : undefined}
                 className="overflow-hidden text-xs sm:text-sm text-red-400"
               >
                 {error}
@@ -176,15 +182,15 @@ export default function Login() {
             <motion.button
               type="submit"
               disabled={loading}
-              whileTap={{ scale: 0.98 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               className="relative w-full overflow-hidden rounded-xl px-4 py-3 text-sm font-medium text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: 'var(--accent)' }}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                    animate={shouldReduceMotion ? undefined : { rotate: 360 }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, repeat: Infinity, ease: 'linear' }}
                     className="inline-block h-4 w-4 rounded-full border-2 border-white border-t-transparent"
                   />
                   Signing in...
@@ -197,9 +203,9 @@ export default function Login() {
           </form>
 
           <motion.p
-            initial={{ opacity: 0 }}
+            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.3 }}
             className="mt-6 text-center text-xs sm:text-sm"
             style={{ color: 'var(--text-secondary)' }}
           >

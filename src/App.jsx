@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useSpring , MotionConfig } from 'framer-motion'
 import { AuthProvider } from './context/AuthContext'
 import { AutoTraverseProvider } from './context/AutoTraverseContext'
 import { MoodProvider } from './context/MoodContext'
@@ -43,7 +43,7 @@ function SectionSeparator() {
 }
 
 function HomePage() {
-  const { loaded } = usePersonalInfo()
+  const { hasLoaded } = usePersonalInfo()
   const mouse = useRef({ x: 0, y: 0 })
 
   const handleMouseMove = (e) => {
@@ -53,7 +53,7 @@ function HomePage() {
     }
   }
 
-  if (!loaded) {
+  if (!hasLoaded) {
     return <div className="relative min-h-[100dvh] overflow-hidden" />
   }
 
@@ -250,6 +250,7 @@ function AppContent() {
 
 export default function App() {
   return (
+    <MotionConfig reducedMotion="user">
     <AuthProvider>
       <AutoTraverseProvider>
         <MoodProvider>
@@ -257,5 +258,6 @@ export default function App() {
         </MoodProvider>
       </AutoTraverseProvider>
     </AuthProvider>
+    </MotionConfig>
   )
 }

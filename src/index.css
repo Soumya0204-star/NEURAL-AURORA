@@ -32,6 +32,33 @@
   100% { background-position: -200% 0; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse-subtle,
+  .animate-shimmer {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .glass-panel,
+  .glass-panel-strong,
+  .magnetic-hover,
+  .cursor-glow {
+    transition: none !important;
+  }
+
+  .glass-panel:hover,
+  .glass-panel-strong:hover,
+  .magnetic-hover:hover {
+    transform: none !important;
+  }
+}
+
 @layer base {
   * {
     margin: 0;

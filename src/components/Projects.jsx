@@ -18,10 +18,10 @@ function ProjectImage({ src, alt, children, shouldReduceMotion }) {
         height={600}
         loading="lazy"
         decoding="async"
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 1.05 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, scale: 1.05 }}
+        animate={shouldReduceMotion ? { opacity: loaded ? 1 : 0, scale: 1 } : { opacity: loaded ? 1 : 0, scale: loaded ? 1 : 1.05 }}
         onLoad={() => setLoaded(true)}
-        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        className="w-full h-full object-cover"
       />
       {children}
     </div>
@@ -91,6 +91,7 @@ function ProjectCard({ project, index, shouldReduceMotion }) {
         <motion.h3 layout className="text-lg font-display font-bold text-black/80 dark:text-white/90 tracking-tight">
           {project.title}
         </motion.h3>
+
         <motion.div
           layout
           className={`text-sm text-black/50 dark:text-white/40 leading-relaxed ${
@@ -118,20 +119,31 @@ function ProjectCard({ project, index, shouldReduceMotion }) {
                   </span>
                 ))}
               </div>
+
               <div className="flex gap-4 mt-1">
                 {['github', 'link', 'demo'].map((type) => {
                   const url = project[type]
                   const Icon = type === 'github' ? GithubIcon : type === 'link' ? LinkIcon : PlayIcon
+
                   return url ? (
-                    <a key={type} href={url} target="_self" rel="noopener noreferrer"
+                    <a
+                      key={type}
+                      href={url}
+                      target="_self"
+                      rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       className="group text-xs text-black/50 dark:text-white/40 hover:text-black/80 dark:hover:text-white/80 transition-colors flex items-center gap-1.5"
                     >
                       <Icon />
-                      <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">{type === 'github' ? 'Source' : type === 'link' ? 'Link' : 'Demo'}</span>
+                      <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">
+                        {type === 'github' ? 'Source' : type === 'link' ? 'Link' : 'Demo'}
+                      </span>
                     </a>
                   ) : (
-                    <span key={type} className="text-xs text-black/20 dark:text-white/20 flex items-center gap-1.5 cursor-not-allowed">
+                    <span
+                      key={type}
+                      className="text-xs text-black/20 dark:text-white/20 flex items-center gap-1.5 cursor-not-allowed"
+                    >
                       <Icon />
                       {type === 'github' ? 'Source' : type === 'link' ? 'Link' : 'Demo'}
                     </span>
@@ -148,7 +160,7 @@ function ProjectCard({ project, index, shouldReduceMotion }) {
 
 export default function Projects() {
   const shouldReduceMotion = useReducedMotion()
-  const projects = useProjects()
+  const { data: projects } = useProjects()
   return (
     <section id="projects" className="relative z-10 py-32 md:py-40">
       <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12">
@@ -160,9 +172,11 @@ export default function Projects() {
           className="mb-16"
         >
           <span className="eyebrow">Portfolio</span>
+
           <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-display font-bold tracking-tighter leading-none">
             Neural <span className="text-gradient">Projects</span>
           </h2>
+
           <p className="mt-4 text-base text-black/50 dark:text-white/40 max-w-[65ch] leading-relaxed">
             Each project is a node in a growing neural network. Click to expand and explore the synaptic connections.
           </p>
