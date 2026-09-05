@@ -103,7 +103,7 @@ const staggerItem = {
 export default function ServiceDetail() {
   const shouldReduceMotion = useReducedMotion()
   const { serviceId } = useParams()
-  const services = useServices()
+  const { data: services } = useServices()
   const service = services.find((s) => s.service_id === serviceId)
 
   const [selectedPricing, setSelectedPricing] = useState(null)

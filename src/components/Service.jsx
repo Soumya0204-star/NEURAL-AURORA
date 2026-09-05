@@ -454,9 +454,9 @@ function FutureReleaseCard({ release, index }) {
 
 export default function Service() {
   const shouldReduceMotion = useReducedMotion()
-  const socialLinks = useSocialLinks()
-  const services = useServices()
-  const page = useServicePage()
+  const { data: socialLinks } = useSocialLinks()
+  const { data: services } = useServices()
+  const { data: page } = useServicePage()
   const [openFAQ, setOpenFAQ] = useState(null)
   const [payingPackage, setPayingPackage] = useState(null)
   const [payingService, setPayingService] = useState(null)
